@@ -3,6 +3,8 @@
  *  TRINETRA - ESP32-CAM Surveillance System
  *  HTTP Server & Handlers (app_httpd.cpp)
  * =============================================================
+ *  Supports multiple simultaneous viewers in STA+AP mode
+ *  
  *  Routes:
  *    /          -> Serve HTML UI
  *    /stream    -> MJPEG live stream (port 81)
@@ -11,6 +13,7 @@
  *    /control   -> Set camera params (framesize, quality, etc.)
  *    /status    -> JSON status of camera sensor
  *    /led       -> Flash LED on/off
+ *    /system-stats -> Real-time system monitoring data
  * =============================================================
  */
 
