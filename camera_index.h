@@ -233,6 +233,16 @@ input[type=range]::-webkit-slider-thumb{
       <input type="range" id="qualitySlider" min="4" max="63" value="12" oninput="updateQualityLabel()" onchange="changeQuality()">
       <span class="range-val" id="qualityVal">12</span>
     </div>
+    <div class="control-group">
+      <span class="control-label">Brightness</span>
+      <input type="range" id="brightnessSlider" min="-2" max="2" value="0" oninput="updateBrightnessLabel()" onchange="changeBrightness()">
+      <span class="range-val" id="brightnessVal">0</span>
+    </div>
+    <div class="control-group">
+      <span class="control-label">Contrast</span>
+      <input type="range" id="contrastSlider" min="-2" max="2" value="0" oninput="updateContrastLabel()" onchange="changeContrast()">
+      <span class="range-val" id="contrastVal">0</span>
+    </div>
   </div>
 
   <!-- Flash LED -->
@@ -361,6 +371,34 @@ function changeQuality(){
     .catch(function(e){showToast('Error: '+e.message,'error');});
 }
 
+/* --- Brightness Control --- */
+function updateBrightnessLabel(){
+  document.getElementById('brightnessVal').textContent=document.getElementById('brightnessSlider').value;
+}
+function changeBrightness(){
+  var val=document.getElementById('brightnessSlider').value;
+  fetch(baseUrl+'/control?var=brightness&val='+val)
+    .then(function(r){
+      if(r.ok) showToast('Brightness: '+val,'success',1200);
+      else showToast('Brightness change failed','error');
+    })
+    .catch(function(e){showToast('Error: '+e.message,'error');});
+}
+
+/* --- Contrast Control --- */
+function updateContrastLabel(){
+  document.getElementById('contrastVal').textContent=document.getElementById('contrastSlider').value;
+}
+function changeContrast(){
+  var val=document.getElementById('contrastSlider').value;
+  fetch(baseUrl+'/control?var=contrast&val='+val)
+    .then(function(r){
+      if(r.ok) showToast('Contrast: '+val,'success',1200);
+      else showToast('Contrast change failed','error');
+    })
+    .catch(function(e){showToast('Error: '+e.message,'error');});
+}
+
 function ledControl(state){
   fetch(baseUrl+'/led?state='+state)
     .then(function(r){
@@ -387,6 +425,14 @@ window.addEventListener('load',function(){
       if(d.quality!==undefined){
         document.getElementById('qualitySlider').value=d.quality;
         document.getElementById('qualityVal').textContent=d.quality;
+      }
+      if(d.brightness!==undefined){
+        document.getElementById('brightnessSlider').value=d.brightness;
+        document.getElementById('brightnessVal').textContent=d.brightness;
+      }
+      if(d.contrast!==undefined){
+        document.getElementById('contrastSlider').value=d.contrast;
+        document.getElementById('contrastVal').textContent=d.contrast;
       }
       document.getElementById('connLabel').textContent='Idle';
     })
