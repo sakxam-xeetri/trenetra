@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-ESP32--CAM-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A professional, mobile-first surveillance system for ESP32-CAM with a modern dark-themed web interface. **Trinetra** (meaning "three eyes" in Sanskrit) provides real-time MJPEG video streaming, photo capture, and SD card storage capabilities through a responsive web UI accessible via Wi-Fi Access Point.
+A professional, mobile-first surveillance system for ESP32-CAM with a modern dark-themed web interface. **Trinetra** (meaning "three eyes" in Sanskrit) provides real-time MJPEG video streaming, photo capture, and SD card storage capabilities through a responsive web UI accessible via dual Wi-Fi modes (Station+AP) - enjoy internet access while viewing your camera!
 
 ---
 
@@ -31,14 +31,18 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 - Real-time resolution and quality controls
 - Flash LED toggle with visual indicator
 
-### 📡 **Wi-Fi Access Point Mode**
-- Default SSID: **`Trinetra_AP`**
-- Default Password: **`12345678`**
+### 📡 **Dual Wi-Fi Mode (STA+AP)**
+- **Station Mode**: Connects to your home/office WiFi for internet access
+- **Access Point Mode**: Broadcasts its own "Trinetra" network
+- Default SSID: **`Trinetra`**
+- Default Password: **`88888888`**
 - **Super Simple IP: `1.2.3.4`** (easy to remember!)
 - **Hostname: `trinetra.local`** (mDNS support)
-- **Auto-redirect**: Connects and opens web interface automatically
+- **Auto-redirect**: Captive portal opens web interface automatically
+- **Internet + Camera**: Devices on Trinetra WiFi get internet access too!
+- **Multiple access methods**: Access via home WiFi OR Trinetra AP
 - **OTA Updates**: Wireless firmware updates (password: `trinetra123`)
-- No router required - direct connection
+- No router required - works standalone or networked
 
 ### ⚡ **Performance Optimized**
 - PSRAM utilization for smooth streaming
@@ -108,12 +112,23 @@ cd trinetra
 
 Or download and extract the ZIP file.
 
-### **3. Configure Wi-Fi (Optional)**
-Edit `trinetra.ino` to customize AP credentials:
+### **3. Configure Wi-Fi**
+Edit `trinetra.ino` to set your home WiFi credentials and customize AP settings:
+
 ```cpp
-const char *ap_ssid     = "Trinetra_AP";      // Change SSID
-const char *ap_password = "12345678";         // Change password (min 8 chars)
+// Station Mode (connect to your home/office WiFi for internet)
+const char *sta_ssid     = "YOUR_WIFI_SSID";      // Change this!
+const char *sta_password = "YOUR_WIFI_PASSWORD";  // Change this!
+
+// Access Point Mode (Trinetra's own network)
+const char *ap_ssid     = "Trinetra";            // Change if desired
+const char *ap_password = "88888888";             // Change password (min 8 chars)
 ```
+
+**Configuration Options:**
+- **Home WiFi (Required for internet)**: Replace `YOUR_WIFI_SSID` and `YOUR_WIFI_PASSWORD` with your actual WiFi credentials
+- **Trinetra AP**: Customize the access point name and password if desired
+- If home WiFi connection fails, camera will work in AP-only mode (no internet)
 
 ### **4. Upload to ESP32-CAM**
 
@@ -143,29 +158,40 @@ const char *ap_password = "12345678";         // Change password (min 8 chars)
 
 ### **1. Power On**
 - Power the ESP32-CAM with 5V supply
-- Wait 5-10 seconds for boot and AP initialization
-- Look for **`Trinetra_AP`** in your Wi-Fi networks
+- Wait 10-15 seconds for boot, WiFi connection, and AP initialization
+- Check Serial Monitor for connection status
 
-### **2. Connect to Access Point**
-- **SSID**: `Trinetra_AP`
-- **Password**: `12345678`
-- **Auto-Opens**: Web interface opens automatically (captive portal)
-- If not auto-opened, manually navigate to `http://1.2.3.4`
+### **2. Access Methods (You have TWO options!)**
 
-### **3. Access Web Interface**
-Open browser and navigate to:
+#### **Option A: Via Your Home WiFi** (Recommended - keeps internet!)
+1. Make sure your device (phone/laptop) is connected to your **home WiFi**
+2. Open browser and go to the IP shown in Serial Monitor, or use:
+   ```
+   http://trinetra.local
+   ```
+3. ✅ You keep internet access while viewing camera!
+4. ✅ Everyone on your home network can access the camera
+
+#### **Option B: Direct Connection to Trinetra AP**
+1. Look for **`Trinetra`** in your Wi-Fi networks
+2. Connect using password: **`88888888`**
+3. **Auto-Opens**: Web interface opens automatically (captive portal)
+4. If not auto-opened, manually navigate to:
+   ```
+   http://1.2.3.4
+   ```
+5. ✅ Your device will have internet through the camera!
+
+### **3. Web Interface URLs**
+
+**Easy to remember addresses:**
 ```
-http://1.2.3.4
+http://1.2.3.4          (via Trinetra WiFi)
+http://trinetra.local   (via any network with mDNS)
+http://192.168.x.x      (via home WiFi - check Serial Monitor)
 ```
 
-**Or use the friendly hostname:**
-```
-http://trinetra.local
-```
-
-**Easy to remember:** Just type **1.2.3.4** or **trinetra.local** in your browser!
-
-For direct stream access:
+**Direct stream access:**
 ```
 http://1.2.3.4:81/stream
 ```
