@@ -597,7 +597,144 @@ window.addEventListener('load',function(){
   // Load system stats initially and refresh every 3 seconds
   refreshStats();
   setInterval(refreshStats,3000);
+  
+  // Load WiFi status
+  refreshWiFiStatus();
 });
+
+/* --- WiFi Manager --- */
+var selectedNetwork=null;
+
+function refreshWiFiStatus(){
+  fetch(baseUrl+'/wifi-status')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var statusBox=document.getElementById('wifiStatusBox');
+      var statusIcon=document.getElementById('wifiStatusIcon');
+      var statusText=document.getElementById('wifiStatusText');
+      if(d.connected){
+        statusIcon.textContent='✅';
+        statusText.innerHTML='<span class="wifi-connected">Connected to <strong>'+d.ssid+'</strong> ('+d.ip+')</span>';
+      }else if(d.savedSSID){
+        statusIcon.textContent='🔄';
+        statusText.innerHTML='<span class="wifi-disconnected">Saved: '+d.savedSSID+' (not connected)</span>';
+      }else{
+        statusIcon.textContent='📵';
+        statusText.innerHTML='<span class="wifi-disconnected">No WiFi configured - AP mode only</span>';
+      }
+    })
+    .catch(function(e){
+      document.getElementById('wifiStatusText').textContent='Error checking status';
+    });
+}
+
+function openWiFiModal(){
+  document.getElementById('wifiModal').classList.add('show');
+  document.getElementById('wifiForm').classList.remove('show');
+  selectedNetwork=null;
+}
+
+function closeWiFiModal(){
+  document.getElementById('wifiModal').classList.remove('show');
+}
+
+function scanNetworks(){
+  var btn=document.getElementById('btnScan');
+  var status=document.getElementById('scanStatus');
+  var list=document.getElementById('networkList');
+  btn.disabled=true;
+  status.textContent='Scanning...';
+  list.innerHTML='<div style="text-align:center;padding:20px">🔍 Scanning for networks...</div>';
+  
+  fetch(baseUrl+'/wifi-scan')
+    .then(function(r){return r.json();})
+    .then(function(networks){
+      btn.disabled=false;
+      status.textContent='Found '+networks.length+' networks';
+      
+      if(networks.length===0){
+        list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text2)">No networks found. Try again.</div>';
+        return;
+      }
+      
+      // Sort by signal strength
+      networks.sort(function(a,b){return b.rssi-a.rssi;});
+      
+      var html='';
+      for(var i=0;i<networks.length;i++){
+        var n=networks[i];
+        var signal='📶';
+        if(n.rssi<-80) signal='📵';
+        else if(n.rssi<-70) signal='📶';
+        else if(n.rssi<-60) signal='📶';
+        
+        var security=n.secure?'<span class="network-secured">🔒 Secured</span>':'<span class="network-open">🔓 Open</span>';
+        
+        html+='<div class="network-item" onclick="selectNetwork(\''+n.ssid.replace(/'/g,"\\'")+'\','+n.secure+')">';
+        html+='<span class="network-name">'+n.ssid+'</span>';
+        html+='<span class="network-info">'+signal+' '+n.rssi+' dBm '+security+'</span>';
+        html+='</div>';
+      }
+      list.innerHTML=html;
+    })
+    .catch(function(e){
+      btn.disabled=false;
+      status.textContent='Scan failed';
+      list.innerHTML='<div style="text-align:center;padding:20px;color:var(--danger)">Scan failed: '+e.message+'</div>';
+    });
+}
+
+function selectNetwork(ssid,secure){
+  selectedNetwork={ssid:ssid,secure:secure};
+  document.getElementById('selectedSSID').textContent=ssid;
+  document.getElementById('selectedSecure').innerHTML=secure?'<span class="network-secured">🔒</span>':'<span class="network-open">🔓 Open</span>';
+  document.getElementById('wifiPassword').value='';
+  document.getElementById('wifiPassword').style.display=secure?'block':'none';
+  document.getElementById('wifiForm').classList.add('show');
+}
+
+function cancelConnect(){
+  document.getElementById('wifiForm').classList.remove('show');
+  selectedNetwork=null;
+}
+
+function connectToNetwork(){
+  if(!selectedNetwork) return;
+  var password=document.getElementById('wifiPassword').value;
+  var ssid=selectedNetwork.ssid;
+  
+  showToast('Connecting to '+ssid+'...','info',5000);
+  closeWiFiModal();
+  
+  var url=baseUrl+'/wifi-connect?ssid='+encodeURIComponent(ssid)+'&password='+encodeURIComponent(password);
+  fetch(url)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.success){
+        showToast('Connected to '+d.ssid+'! IP: '+d.ip,'success',5000);
+        refreshWiFiStatus();
+      }else{
+        showToast('Connection failed: '+d.message,'error',4000);
+      }
+    })
+    .catch(function(e){
+      showToast('Connection error: '+e.message,'error');
+    });
+}
+
+function resetWiFi(){
+  if(!confirm('Clear saved WiFi credentials? Device will use AP mode only.')) return;
+  
+  fetch(baseUrl+'/wifi-reset')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      showToast(d.message,'info',4000);
+      refreshWiFiStatus();
+    })
+    .catch(function(e){
+      showToast('Reset failed: '+e.message,'error');
+    });
+}
 </script>
 </body>
 </html>
