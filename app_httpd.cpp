@@ -14,6 +14,10 @@
  *    /status    -> JSON status of camera sensor
  *    /led       -> Flash LED on/off
  *    /system-stats -> Real-time system monitoring data
+ *    /wifi-scan    -> Scan available WiFi networks
+ *    /wifi-connect -> Connect to selected network
+ *    /wifi-status  -> Get WiFi connection status
+ *    /wifi-reset   -> Clear saved WiFi credentials
  * =============================================================
  */
 
@@ -59,6 +63,16 @@ extern unsigned long systemStartTime;
 extern uint32_t currentFPS;
 extern unsigned long totalFrames;
 extern unsigned long lastFrameTime;
+
+// =======================
+// WiFi Manager Functions (from trenetra.ino)
+// =======================
+extern String scanNetworks();
+extern void saveWiFiCredentials(const char* ssid, const char* password);
+extern void clearWiFiCredentials();
+extern String getWiFiStatus();
+extern bool connectToWiFi(const char* ssid, const char* password, int timeoutSeconds);
+extern bool wifiConnected;
 
 // =======================
 // MJPEG Stream Boundary
@@ -627,6 +641,97 @@ static esp_err_t system_stats_handler(httpd_req_t *req) {
 }
 
 // ==================================================================
+//  WiFi Manager Handlers
+// ==================================================================
+
+// Scan available WiFi networks
+static esp_err_t wifi_scan_handler(httpd_req_t *req) {
+  String networks = scanNetworks();
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, networks.c_str(), networks.length());
+}
+
+// Get WiFi status
+static esp_err_t wifi_status_handler(httpd_req_t *req) {
+  String status = getWiFiStatus();
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, status.c_str(), status.length());
+}
+
+// Connect to WiFi network
+static esp_err_t wifi_connect_handler(httpd_req_t *req) {
+  char buf[256];
+  int ret, remaining = req->content_len;
+  
+  // Handle GET request with query params
+  if (req->method == HTTP_GET) {
+    size_t query_len = httpd_req_get_url_query_len(req) + 1;
+    if (query_len > 1) {
+      char query[256];
+      if (httpd_req_get_url_query_str(req, query, query_len) == ESP_OK) {
+        char ssid[64] = {0};
+        char password[64] = {0};
+        
+        httpd_query_key_value(query, "ssid", ssid, sizeof(ssid));
+        httpd_query_key_value(query, "password", password, sizeof(password));
+        
+        // URL decode the SSID and password
+        // (simple decode - handle %20 and + for space)
+        for (int i = 0; ssid[i]; i++) {
+          if (ssid[i] == '+') ssid[i] = ' ';
+        }
+        for (int i = 0; password[i]; i++) {
+          if (password[i] == '+') password[i] = ' ';
+        }
+        
+        if (strlen(ssid) > 0) {
+          // Try to connect
+          bool success = connectToWiFi(ssid, password, 15);
+          
+          String json = "{";
+          json += "\"success\":" + String(success ? "true" : "false") + ",";
+          json += "\"ssid\":\"" + String(ssid) + "\",";
+          if (success) {
+            // Save credentials if connection successful
+            saveWiFiCredentials(ssid, password);
+            json += "\"ip\":\"" + WiFi.localIP().toString() + "\",";
+            json += "\"message\":\"Connected and saved!\"";
+          } else {
+            json += "\"ip\":\"\",";
+            json += "\"message\":\"Connection failed\"";
+          }
+          json += "}";
+          
+          httpd_resp_set_type(req, "application/json");
+          httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+          return httpd_resp_send(req, json.c_str(), json.length());
+        }
+      }
+    }
+  }
+  
+  // Default error response
+  const char* error = "{\"success\":false,\"message\":\"Missing SSID parameter\"}";
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, error, strlen(error));
+}
+
+// Reset/clear saved WiFi credentials
+static esp_err_t wifi_reset_handler(httpd_req_t *req) {
+  clearWiFiCredentials();
+  WiFi.disconnect();
+  wifiConnected = false;
+  
+  const char* response = "{\"success\":true,\"message\":\"WiFi credentials cleared. Device will use AP mode only until reconfigured.\"}";
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, response, strlen(response));
+}
+
+// ==================================================================
 //  Start Camera Web Server
 // ==================================================================
 void startCameraServer() {
@@ -704,6 +809,47 @@ void startCameraServer() {
 #endif
   };
 
+  // ---- WiFi Manager URIs ----
+  httpd_uri_t wifi_scan_uri = {
+    .uri = "/wifi-scan",
+    .method = HTTP_GET,
+    .handler = wifi_scan_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t wifi_connect_uri = {
+    .uri = "/wifi-connect",
+    .method = HTTP_GET,
+    .handler = wifi_connect_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t wifi_status_uri = {
+    .uri = "/wifi-status",
+    .method = HTTP_GET,
+    .handler = wifi_status_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t wifi_reset_uri = {
+    .uri = "/wifi-reset",
+    .method = HTTP_GET,
+    .handler = wifi_reset_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
   // ---- URI for the stream server (port 81) ----
   httpd_uri_t stream_uri = {
     .uri = "/stream",
@@ -728,6 +874,11 @@ void startCameraServer() {
     httpd_register_uri_handler(camera_httpd, &save_photo_uri);
     httpd_register_uri_handler(camera_httpd, &led_uri);
     httpd_register_uri_handler(camera_httpd, &system_stats_uri);
+    // WiFi Manager
+    httpd_register_uri_handler(camera_httpd, &wifi_scan_uri);
+    httpd_register_uri_handler(camera_httpd, &wifi_connect_uri);
+    httpd_register_uri_handler(camera_httpd, &wifi_status_uri);
+    httpd_register_uri_handler(camera_httpd, &wifi_reset_uri);
   }
 
   // Start stream HTTP server on port 81
