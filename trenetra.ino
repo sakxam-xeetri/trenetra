@@ -21,6 +21,7 @@
 
 #include "esp_camera.h"
 #include <WiFi.h>
+#include <DNSServer.h>
 #include "FS.h"
 #include "SD_MMC.h"
 
@@ -30,9 +31,16 @@
 // =======================
 // Wi-Fi AP Configuration
 // =======================
-const char *ap_ssid     = "Trinetra_AP";
-const char *ap_password = "12345678";   // Set to "" for open network
+const char *ap_ssid     = "Trinetra";
+const char *ap_password = "888888";   // Set to "" for open network
+// Simple IP Address: 1.2.3.4
+IPAddress local_ip(1, 2, 3, 4);
+IPAddress gateway(1, 2, 3, 4);
+IPAddress subnet(255, 255, 255, 0);
 
+// DNS Server for Captive Portal (auto-redirect)
+DNSServer dnsServer;
+const byte DNS_PORT = 53;
 // =======================
 // SD Card availability flag (used by app_httpd.cpp)
 // =======================
@@ -164,27 +172,33 @@ void setup() {
   // ----- Start Wi-Fi Access Point -----
   Serial.println("[WiFi] Starting Access Point...");
   WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
   WiFi.softAP(ap_ssid, ap_password);
   delay(100);  // Brief delay for AP to stabilize
 
-  IPAddress IP = WiFi.softAPIP();
+  // Start DNS Server for Captive Portal (redirects all DNS requests to our IP)
+  dnsServer.start(DNS_PORT, "*", local_ip);
+  Serial.println("[DNS] Captive portal DNS started");
+
   Serial.printf("[WiFi] AP SSID:     %s\n", ap_ssid);
   Serial.printf("[WiFi] AP Password: %s\n", ap_password);
-  Serial.printf("[WiFi] AP IP:       %s\n", IP.toString().c_str());
+  Serial.printf("[WiFi] AP IP:       %s\n", local_ip.toString().c_str());
 
   // ----- Start Web Server -----
   startCameraServer();
 
   Serial.println("=================================");
   Serial.println("   TRINETRA is READY!            ");
-  Serial.printf("   Web UI:  http://%s\n", IP.toString().c_str());
-  Serial.printf("   Stream:  http://%s:81/stream\n", IP.toString().c_str());
+  Serial.printf("   Web UI:  http://%s\n", local_ip.toString().c_str());
+  Serial.printf("   Stream:  http://%s:81/stream\n", local_ip.toString().c_str());
+  Serial.println("   Connect to WiFi - Auto Opens! ");
   Serial.println("=================================");
 }
 
 // =======================
-// LOOP (nothing here - web server runs in RTOS tasks)
+// LOOP - Process DNS requests for captive portal
 // =======================
 void loop() {
-  delay(10000);
+  dnsServer.processNextRequest();  // Handle DNS for captive portal redirection
+  delay(10);
 }
