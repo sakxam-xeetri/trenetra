@@ -163,6 +163,29 @@ input[type=range]::-webkit-slider-thumb{
 @media(min-width:600px){
   .btn-row-main{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
 }
+/* Modal Styles */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:400px;width:100%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:1rem;margin:0}
+.modal-close{background:none;border:none;color:var(--text2);font-size:1.5rem;cursor:pointer;padding:0;line-height:1}
+.modal-close:hover{color:var(--accent)}
+.modal-body{padding:14px 16px;overflow-y:auto;flex:1}
+.network-list{max-height:240px;overflow-y:auto}
+.network-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.network-item:hover{border-color:var(--accent);background:#2a2a2a}
+.network-name{font-size:.85rem;font-weight:500}
+.network-info{display:flex;align-items:center;gap:8px;font-size:.7rem;color:var(--text2)}
+.network-open{color:var(--success)}
+.network-secured{color:var(--accent)}
+.wifi-form{margin-top:12px;display:none}
+.wifi-form.show{display:block}
+.wifi-input{width:100%;padding:10px 12px;border-radius:8px;background:var(--surface2);color:var(--text);border:1px solid var(--border);font-size:.85rem;margin-bottom:10px}
+.wifi-input:focus{outline:none;border-color:var(--accent)}
+.wifi-status{padding:10px;background:var(--surface2);border-radius:8px;margin-bottom:12px;font-size:.8rem}
+.wifi-connected{color:var(--success)}
+.wifi-disconnected{color:var(--text2)}
 </style>
 </head>
 <body>
@@ -306,6 +329,22 @@ input[type=range]::-webkit-slider-thumb{
     </div>
   </div>
 
+  <!-- WiFi Setup -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      WiFi Setup
+    </div>
+    <div class="wifi-status" id="wifiStatusBox">
+      <span id="wifiStatusIcon">📶</span>
+      <span id="wifiStatusText">Checking...</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary btn-sm" onclick="openWiFiModal()">📡 Configure WiFi</button>
+      <button class="btn btn-danger btn-sm" onclick="resetWiFi()">🗑️ Reset</button>
+    </div>
+  </div>
+
   <div class="footer">
     TRINETRA Surveillance System &bull; ESP32-CAM &bull; v1.0
   </div>
@@ -313,6 +352,38 @@ input[type=range]::-webkit-slider-thumb{
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
+
+<!-- WiFi Setup Modal -->
+<div class="modal" id="wifiModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>📡 WiFi Setup</h2>
+      <button class="modal-close" onclick="closeWiFiModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px">
+        <button class="btn btn-secondary btn-sm" onclick="scanNetworks()" id="btnScan">🔍 Scan Networks</button>
+        <span style="font-size:.7rem;color:var(--text2);margin-left:8px" id="scanStatus"></span>
+      </div>
+      <div class="network-list" id="networkList">
+        <div style="text-align:center;color:var(--text2);padding:20px;font-size:.8rem">
+          Click "Scan Networks" to find available WiFi
+        </div>
+      </div>
+      <div class="wifi-form" id="wifiForm">
+        <div style="font-size:.85rem;margin-bottom:8px">
+          <strong>Selected:</strong> <span id="selectedSSID"></span>
+          <span id="selectedSecure" style="margin-left:8px"></span>
+        </div>
+        <input type="password" class="wifi-input" id="wifiPassword" placeholder="Enter WiFi password (if required)">
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="connectToNetwork()">🔗 Connect</button>
+          <button class="btn btn-secondary" onclick="cancelConnect()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 var streamOn=false;
