@@ -34,7 +34,8 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 ### 📡 **Wi-Fi Access Point Mode**
 - Default SSID: **`Trinetra_AP`**
 - Default Password: **`12345678`**
-- Default IP: **`192.168.4.1`**
+- **Super Simple IP: `1.2.3.4`** (easy to remember!)
+- **Auto-redirect**: Connects and opens web interface automatically
 - No router required - direct connection
 
 ### ⚡ **Performance Optimized**
@@ -134,17 +135,20 @@ const char *ap_password = "12345678";         // Change password (min 8 chars)
 ### **2. Connect to Access Point**
 - **SSID**: `Trinetra_AP`
 - **Password**: `12345678`
-- Wait for connection (device IP will be `192.168.4.1`)
+- **Auto-Opens**: Web interface opens automatically (captive portal)
+- If not auto-opened, manually navigate to `http://1.2.3.4`
 
 ### **3. Access Web Interface**
 Open browser and navigate to:
 ```
-http://192.168.4.1
+http://1.2.3.4
 ```
+
+**Easy to remember:** Just type **1.2.3.4** in your browser!
 
 For direct stream access:
 ```
-http://192.168.4.1:81/stream
+http://1.2.3.4:81/stream
 ```
 
 ### **4. Controls**
@@ -162,6 +166,12 @@ http://192.168.4.1:81/stream
 - **Quality Slider** - Adjust JPEG quality (4=best, 63=worst)
   - Lower value = better quality, larger file size
   - Recommended: 10-15 for balanced performance
+- **Brightness Slider** - Adjust image brightness (-2 to +2)
+  - Negative = darker, Positive = brighter
+  - Default: 0
+- **Contrast Slider** - Adjust image contrast (-2 to +2)
+  - Negative = lower contrast, Positive = higher contrast
+  - Default: 0
 
 #### Flash LED
 - **💡 ON** - Turn on built-in flash LED
@@ -224,9 +234,9 @@ Edit in `app_httpd.cpp`:
 
 ### **Video Stream Not Loading**
 - **Check**: Connected to `Trinetra_AP` Wi-Fi
-- **Check**: Accessing `http://192.168.4.1` (not HTTPS)
+- **Check**: Accessing `http://1.2.3.4` (not HTTPS)
 - **Check**: Port 81 is not blocked by firewall
-- **Fix**: Click Start button, ensure stream URL is `http://192.168.4.1:81/stream`
+- **Fix**: Click Start button, ensure stream URL is `http://1.2.3.4:81/stream`
 
 ### **SD Card Not Detected**
 - **Check**: SD card is formatted as FAT32
@@ -266,13 +276,19 @@ Edit in `app_httpd.cpp`:
 
 ### **Example: Change Resolution via API**
 ```bash
-curl "http://192.168.4.1/control?var=framesize&val=8"
+curl "http://1.2.3.4/control?var=framesize&val=8"
 # 3=QQVGA, 5=QVGA, 8=VGA, 9=SVGA, 10=XGA, 12=SXGA
+```
+
+### **Example: Adjust Brightness**
+```bash
+curl "http://1.2.3.4/control?var=brightness&val=1"
+# Range: -2 to +2
 ```
 
 ### **Example: Capture Photo via API**
 ```bash
-curl "http://192.168.4.1/capture" --output photo.jpg
+curl "http://1.2.3.4/capture" --output photo.jpg
 ```
 
 ---
