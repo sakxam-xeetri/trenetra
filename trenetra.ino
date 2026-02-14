@@ -147,6 +147,11 @@ String scanNetworks() {
 bool connectToWiFi(const char* ssid, const char* password, int timeoutSeconds = 15) {
   Serial.printf("[WiFi] Connecting to: %s\n", ssid);
   
+  // Disconnect from any previous connection to ensure clean state
+  WiFi.disconnect(true);
+  delay(100);  // Give WiFi stack time to reset
+  
+  // Begin connection
   WiFi.begin(ssid, password);
   
   int attempts = 0;
@@ -302,6 +307,11 @@ void setup() {
 
   // ----- WiFi Manager: Load & Connect -----
   Serial.println("[WiFi] Configuring STA+AP mode...");
+  
+  // Disconnect any previous connections
+  WiFi.disconnect(true);
+  delay(100);
+  
   WiFi.mode(WIFI_AP_STA);  // Enable both Station and Access Point
   
   // Start Access Point first (always available)
@@ -315,7 +325,7 @@ void setup() {
   
   // Try to connect to saved network (if any)
   if (savedSSID.length() > 0) {
-    Serial.printf("[WiFi] Connecting to saved network: %s\n", savedSSID.c_str());
+    Serial.printf("[WiFi] Attempting to connect to: %s\n", savedSSID.c_str());
     if (connectToWiFi(savedSSID.c_str(), savedPassword.c_str(), 15)) {
       Serial.println("[WiFi] Connected to saved network!");
     } else {
