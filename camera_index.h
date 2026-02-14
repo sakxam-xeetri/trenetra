@@ -125,6 +125,10 @@ input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
   background:var(--accent);cursor:pointer;box-shadow:0 0 6px var(--accent-glow);
 }
+.range-val{
+  min-width:32px;text-align:center;font-size:.75rem;
+  color:var(--accent);font-weight:600;
+}
 .led-status{display:flex;align-items:center;gap:8px;margin-top:6px}
 .led-icon{
   width:14px;height:14px;border-radius:50%;
@@ -258,7 +262,7 @@ input[type=range]::-webkit-slider-thumb{
 <script>
 var streamOn=false;
 var baseUrl=window.location.origin;
-var streamUrl=baseUrl.replace(/:\d+$/,':81')+'/stream';
+var streamUrl=window.location.protocol+'//'+window.location.hostname+':81/stream';
 var resMap={'3':'QQVGA','5':'QVGA','8':'VGA','9':'SVGA','10':'XGA','12':'SXGA'};
 
 function showToast(msg,type,dur){
