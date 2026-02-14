@@ -58,9 +58,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .ib.active{color:var(--ac);background:var(--acd)}
 .ib svg{width:18px;height:18px;fill:currentColor}
 
-/* ===== HERO STREAM (FULL VIEWPORT) ===== */
-.hero{position:fixed;top:var(--bar);left:0;right:0;bottom:var(--mnav);background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.hero img{width:100%;height:100%;object-fit:contain;display:block;transition:none}
+/* ===== HERO STREAM (FULL VIEWPORT WITH CURVED EDGES) ===== */
+.hero{position:fixed;top:calc(var(--bar) + 8px);left:8px;right:8px;bottom:calc(var(--mnav) + 8px);background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.hero img{width:100%;height:100%;object-fit:contain;display:block;transition:none;border-radius:20px}
 .hero img.hide{display:none}
 
 /* Placeholder */
@@ -242,7 +242,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .bar{height:44px;padding:0 8px}
 .lt{font-size:.9rem}
 .bar-r .ib.desk{display:none}
-.hero{bottom:52px}
 .drawer{top:44px;bottom:52px;width:100%}
 .cb{width:42px;height:42px}.cb svg{width:20px;height:20px}
 .cbar{height:56px;gap:8px;padding:0 14px;bottom:10px;border-radius:28px}
