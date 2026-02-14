@@ -6,27 +6,19 @@
  *  Board:  AI-Thinker ESP32-CAM (with PSRAM)
  *  Mode:   Wi-Fi Station + Access Point (STA+AP)
  *  
- *  HOME WiFi:  Configure YOUR_WIFI_SSID/PASSWORD below
- *  Access via: http://trinetra.local or http://[home-wifi-ip]
+ *  WIFI MANAGER: Connect to "Trinetra" WiFi, go to 1.2.3.4
+ *                Click "WiFi Setup" to configure home network
+ *                Select from available networks (including free!)
  *  
- *  TRINETRA AP: "Trinetra" / 88888888
- *  Access via:  http://1.2.3.4 (auto-opens!)
+ *  Access via:  http://1.2.3.4 (Trinetra AP - always available)
+ *               http://trinetra.local (when connected to home WiFi)
  *  
  *  Stream:     http://[any-ip]:81/stream
  *  
- *  Benefits:   ✅ Internet + Camera at same time
+ *  Benefits:   ✅ No code changes to switch WiFi networks
+ *              ✅ Auto-connects to saved/free networks
+ *              ✅ Works without any WiFi (AP-only mode)
  *              ✅ Multiple simultaneous viewers supported
- *              ✅ Access from home WiFi OR Trinetra AP
- * =============================================================
- *  Features:
- *   - MJPEG live streaming (dual frame buffer)
- *   - Photo capture & download
- *   - Save photos to microSD card
- *   - Flash LED on/off control
- *   - Dynamic resolution & quality selection
- *   - Dark-themed responsive mobile UI
- *   - Real-time system monitoring
- *   - OTA wireless firmware updates
  * =============================================================
  */
 
@@ -35,6 +27,7 @@
 #include <DNSServer.h>
 #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
+#include <Preferences.h>  // For saving WiFi credentials
 #include "FS.h"
 #include "SD_MMC.h"
 #ifdef __cplusplus
@@ -49,13 +42,16 @@ uint8_t temprature_sens_read();
 #include "board_config.h"
 
 // =======================
-// Wi-Fi Configuration
+// WiFi Manager - Preferences Storage
 // =======================
-// Station Mode (connect to your home/office WiFi for internet)
-const char *sta_ssid     = "YOUR_WIFI_SSID";      // Change this!
-const char *sta_password = "YOUR_WIFI_PASSWORD";  // Change this!
+Preferences preferences;
+String savedSSID = "";
+String savedPassword = "";
+bool wifiConnected = false;
 
-// Access Point Mode (Trinetra's own network)
+// =======================
+// Access Point Configuration (always available)
+// =======================
 const char *ap_ssid     = "Trinetra";
 const char *ap_password = "88888888";   // Set to "" for open network
 // Simple IP Address: 1.2.3.4
@@ -85,6 +81,107 @@ bool sdCardAvailable = false;
 // =======================
 void startCameraServer();
 void setupLedFlash();
+
+// =======================
+// WiFi Manager Functions
+// =======================
+
+// Load saved WiFi credentials from flash
+void loadWiFiCredentials() {
+  preferences.begin("trinetra", true);  // Read-only
+  savedSSID = preferences.getString("ssid", "");
+  savedPassword = preferences.getString("password", "");
+  preferences.end();
+  
+  if (savedSSID.length() > 0) {
+    Serial.printf("[WiFi] Loaded saved network: %s\n", savedSSID.c_str());
+  } else {
+    Serial.println("[WiFi] No saved network found");
+  }
+}
+
+// Save WiFi credentials to flash
+void saveWiFiCredentials(const char* ssid, const char* password) {
+  preferences.begin("trinetra", false);  // Read-write
+  preferences.putString("ssid", ssid);
+  preferences.putString("password", password);
+  preferences.end();
+  savedSSID = String(ssid);
+  savedPassword = String(password);
+  Serial.printf("[WiFi] Saved network: %s\n", ssid);
+}
+
+// Clear saved WiFi credentials
+void clearWiFiCredentials() {
+  preferences.begin("trinetra", false);
+  preferences.remove("ssid");
+  preferences.remove("password");
+  preferences.end();
+  savedSSID = "";
+  savedPassword = "";
+  Serial.println("[WiFi] Credentials cleared");
+}
+
+// Scan for available WiFi networks (returns JSON)
+String scanNetworks() {
+  Serial.println("[WiFi] Scanning networks...");
+  int n = WiFi.scanNetworks();
+  String json = "[";
+  
+  for (int i = 0; i < n; i++) {
+    if (i > 0) json += ",";
+    json += "{";
+    json += "\"ssid\":\"" + WiFi.SSID(i) + "\",";
+    json += "\"rssi\":" + String(WiFi.RSSI(i)) + ",";
+    json += "\"secure\":" + String(WiFi.encryptionType(i) != WIFI_AUTH_OPEN ? "true" : "false");
+    json += "}";
+  }
+  json += "]";
+  
+  WiFi.scanDelete();
+  Serial.printf("[WiFi] Found %d networks\n", n);
+  return json;
+}
+
+// Try to connect to a WiFi network
+bool connectToWiFi(const char* ssid, const char* password, int timeoutSeconds = 15) {
+  Serial.printf("[WiFi] Connecting to: %s\n", ssid);
+  
+  WiFi.begin(ssid, password);
+  
+  int attempts = 0;
+  int maxAttempts = timeoutSeconds * 2;  // Check every 500ms
+  
+  while (WiFi.status() != WL_CONNECTED && attempts < maxAttempts) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  Serial.println();
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    wifiConnected = true;
+    Serial.println("[WiFi] Connected!");
+    Serial.printf("[WiFi] IP: %s\n", WiFi.localIP().toString().c_str());
+    return true;
+  } else {
+    wifiConnected = false;
+    Serial.println("[WiFi] Connection failed");
+    return false;
+  }
+}
+
+// Get current WiFi status as JSON
+String getWiFiStatus() {
+  String json = "{";
+  json += "\"connected\":" + String(wifiConnected ? "true" : "false") + ",";
+  json += "\"ssid\":\"" + (wifiConnected ? WiFi.SSID() : savedSSID) + "\",";
+  json += "\"ip\":\"" + (wifiConnected ? WiFi.localIP().toString() : String("")) + "\",";
+  json += "\"rssi\":" + String(wifiConnected ? WiFi.RSSI() : 0) + ",";
+  json += "\"savedSSID\":\"" + savedSSID + "\"";
+  json += "}";
+  return json;
+}
 
 // =======================
 // Initialize SD Card (1-bit mode for AI-Thinker compatibility)
@@ -203,38 +300,31 @@ void setup() {
   // ----- Initialize SD Card -----
   initSDCard();
 
-  // ----- Start Wi-Fi in STA+AP Mode (Internet + Camera) -----
+  // ----- WiFi Manager: Load & Connect -----
   Serial.println("[WiFi] Configuring STA+AP mode...");
   WiFi.mode(WIFI_AP_STA);  // Enable both Station and Access Point
   
-  // Connect to home/office WiFi (Station mode)
-  Serial.printf("[WiFi] Connecting to %s", sta_ssid);
-  WiFi.begin(sta_ssid, sta_password);
-  
-  // Wait for connection (max 20 seconds)
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 40) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
-  }
-  Serial.println();
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("[WiFi] ✓ Connected to home WiFi!");
-    Serial.printf("[WiFi] Station IP: %s\n", WiFi.localIP().toString().c_str());
-    Serial.printf("[WiFi] Gateway:    %s\n", WiFi.gatewayIP().toString().c_str());
-    Serial.printf("[WiFi] DNS:        %s\n", WiFi.dnsIP().toString().c_str());
-  } else {
-    Serial.println("[WiFi] ✗ Failed to connect to home WiFi");
-    Serial.println("[WiFi] Camera will work in AP-only mode (no internet)");
-  }
-  
-  // Start Access Point (our own network)
+  // Start Access Point first (always available)
   Serial.println("[WiFi] Starting Access Point...");
   WiFi.softAPConfig(local_ip, gateway, subnet);
   WiFi.softAP(ap_ssid, ap_password);
   delay(100);  // Brief delay for AP to stabilize
+  
+  // Load saved WiFi credentials
+  loadWiFiCredentials();
+  
+  // Try to connect to saved network (if any)
+  if (savedSSID.length() > 0) {
+    Serial.printf("[WiFi] Connecting to saved network: %s\n", savedSSID.c_str());
+    if (connectToWiFi(savedSSID.c_str(), savedPassword.c_str(), 15)) {
+      Serial.println("[WiFi] Connected to saved network!");
+    } else {
+      Serial.println("[WiFi] Could not connect to saved network");
+      Serial.println("[WiFi] Use WiFi Setup in web UI to configure");
+    }
+  } else {
+    Serial.println("[WiFi] No saved network - use WiFi Setup in web UI");
+  }
 
   // Start DNS Server for Captive Portal (redirects all DNS requests to our IP)
   dnsServer.start(DNS_PORT, "*", local_ip);
@@ -251,7 +341,6 @@ void setup() {
   Serial.printf("[WiFi] AP SSID:     %s\n", ap_ssid);
   Serial.printf("[WiFi] AP Password: %s\n", ap_password);
   Serial.printf("[WiFi] AP IP:       %s\n", local_ip.toString().c_str());
-  Serial.printf("[WiFi] AP Clients:  %d\n", WiFi.softAPgetStationNum());
 
   // ----- Start Web Server -----
   startCameraServer();
@@ -292,39 +381,44 @@ void setup() {
   Serial.println("   TRINETRA is READY!            ");
   Serial.println("---------------------------------");
   Serial.println("   ACCESS METHODS:               ");
-  if (WiFi.status() == WL_CONNECTED) {
+  if (wifiConnected) {
     Serial.printf("   1. Home WiFi: http://%s\n", WiFi.localIP().toString().c_str());
     Serial.printf("      (or http://trinetra.local)\n");
   }
   Serial.printf("   2. Trinetra WiFi: http://%s\n", local_ip.toString().c_str());
   Serial.println("      (Auto-opens when connected)");
   Serial.println("---------------------------------");
-  Serial.printf("   Stream:  :81/stream\n");
+  Serial.println("   WiFi Setup: Click 'WiFi Setup'");
+  Serial.println("   Stream:  :81/stream           ");
   Serial.println("   OTA Password: trinetra123     ");
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("   Internet: AVAILABLE ✓         ");
+  if (wifiConnected) {
+    Serial.println("   Internet: AVAILABLE           ");
   } else {
-    Serial.println("   Internet: NOT AVAILABLE ✗     ");
+    Serial.println("   Internet: Configure WiFi!     ");
   }
   Serial.println("=================================");
 }
 
 // =======================
-// LOOP - Process DNS, OTA, WiFi reconnect, and stats
+// LOOP - Process DNS, OTA, WiFi reconnect
 // =======================
 void loop() {
   dnsServer.processNextRequest();  // Handle DNS for captive portal redirection
   ArduinoOTA.handle();              // Handle OTA updates
   
-  // Auto-reconnect to home WiFi if connection is lost
+  // Auto-reconnect to saved WiFi if connection is lost
   static unsigned long lastReconnectAttempt = 0;
-  if (WiFi.status() != WL_CONNECTED) {
+  if (savedSSID.length() > 0 && WiFi.status() != WL_CONNECTED) {
+    wifiConnected = false;
     unsigned long now = millis();
     if (now - lastReconnectAttempt > 30000) {  // Try every 30 seconds
       lastReconnectAttempt = now;
-      Serial.println("[WiFi] Reconnecting to home WiFi...");
-      WiFi.begin(sta_ssid, sta_password);
+      Serial.println("[WiFi] Reconnecting to saved network...");
+      WiFi.begin(savedSSID.c_str(), savedPassword.c_str());
     }
+  } else if (WiFi.status() == WL_CONNECTED && !wifiConnected) {
+    wifiConnected = true;
+    Serial.printf("[WiFi] Reconnected! IP: %s\n", WiFi.localIP().toString().c_str());
   }
   
   delay(10);
