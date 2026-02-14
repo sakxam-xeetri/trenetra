@@ -31,6 +31,16 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 - Real-time resolution and quality controls
 - Flash LED toggle with visual indicator
 
+### 📡 **WiFi Manager (No Code Changes Needed!)**
+- **Web-based WiFi configuration** - no need to edit code
+- **Scan available networks** - see all WiFi networks with signal strength
+- **One-click connection** - select and connect to any network
+- **Support for open/free WiFi** - connects to unsecured networks
+- **Credentials saved to flash** - survives reboots
+- **Auto-reconnect** - reconnects automatically if WiFi drops
+- **Reset option** - clear saved credentials anytime
+- **Fallback to AP mode** - always works even without WiFi
+
 ### 📡 **Dual Wi-Fi Mode (STA+AP)**
 - **Station Mode**: Connects to your home/office WiFi for internet access
 - **Access Point Mode**: Broadcasts its own "Trinetra" network
@@ -112,25 +122,9 @@ cd trinetra
 
 Or download and extract the ZIP file.
 
-### **3. Configure Wi-Fi**
-Edit `trinetra.ino` to set your home WiFi credentials and customize AP settings:
+### **3. Upload to ESP32-CAM**
 
-```cpp
-// Station Mode (connect to your home/office WiFi for internet)
-const char *sta_ssid     = "YOUR_WIFI_SSID";      // Change this!
-const char *sta_password = "YOUR_WIFI_PASSWORD";  // Change this!
-
-// Access Point Mode (Trinetra's own network)
-const char *ap_ssid     = "Trinetra";            // Change if desired
-const char *ap_password = "88888888";             // Change password (min 8 chars)
-```
-
-**Configuration Options:**
-- **Home WiFi (Required for internet)**: Replace `YOUR_WIFI_SSID` and `YOUR_WIFI_PASSWORD` with your actual WiFi credentials
-- **Trinetra AP**: Customize the access point name and password if desired
-- If home WiFi connection fails, camera will work in AP-only mode (no internet)
-
-### **4. Upload to ESP32-CAM**
+> **Note:** WiFi is configured through the web interface after upload - no code changes needed!
 
 #### Wiring for Programming
 | FTDI Adapter | ESP32-CAM |
@@ -158,10 +152,24 @@ const char *ap_password = "88888888";             // Change password (min 8 char
 
 ### **1. Power On**
 - Power the ESP32-CAM with 5V supply
-- Wait 10-15 seconds for boot, WiFi connection, and AP initialization
-- Check Serial Monitor for connection status
+- Wait 10-15 seconds for boot and AP initialization
+- The camera will try to connect to any saved WiFi network
+- If no network saved, it will run in AP-only mode (still usable!)
 
-### **2. Access Methods (You have TWO options!)**
+### **2. First Time WiFi Setup**
+
+1. Connect your phone/laptop to **`Trinetra`** WiFi (password: `88888888`)
+2. Browser opens automatically at `http://1.2.3.4`
+3. Scroll down to **WiFi Setup** section
+4. Click **📡 Configure WiFi**
+5. Click **🔍 Scan Networks** - shows all available WiFi networks
+6. **Select your network** from the list:
+   - 🔒 Secured networks - enter password
+   - 🔓 Open/free networks - no password needed
+7. Click **🔗 Connect**
+8. Done! Credentials are saved and survive reboots
+
+### **3. Access Methods (You have TWO options!)**
 
 #### **Option A: Via Your Home WiFi** (Recommended - keeps internet!)
 1. Make sure your device (phone/laptop) is connected to your **home WiFi**
