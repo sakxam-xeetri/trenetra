@@ -28,6 +28,9 @@
 #include "FS.h"
 #include "SD_MMC.h"
 
+// WiFi for RSSI reading
+#include <WiFi.h>
+
 #if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
 #endif
@@ -45,6 +48,14 @@ bool isStreaming = false;
 // SD Card State
 // =======================
 extern bool sdCardAvailable;  // Defined in trenetra.ino
+
+// =======================
+// System Stats (from trenetra.ino)
+// =======================
+extern unsigned long systemStartTime;
+extern uint32_t currentFPS;
+extern unsigned long totalFrames;
+extern unsigned long lastFrameTime;
 
 // =======================
 // MJPEG Stream Boundary
@@ -320,6 +331,13 @@ static esp_err_t stream_handler(httpd_req_t *req) {
     last_frame = fr_end;
     frame_time /= 1000;
 
+    // Update global FPS stats
+    totalFrames++;
+    if (frame_time > 0) {
+      currentFPS = 1000 / frame_time;
+    }
+    lastFrameTime = millis();
+
 #if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_INFO
     uint32_t avg_frame_time = ra_filter_run(&ra_filter, frame_time);
     log_i("MJPG: %uB %ums (%.1ffps), AVG: %ums (%.1ffps)",
@@ -527,6 +545,85 @@ static esp_err_t led_handler(httpd_req_t *req) {
 }
 
 // ==================================================================
+//  HANDLER: System Stats (uptime, temp, FPS, WiFi, memory)
+// ==================================================================
+#ifdef __cplusplus
+extern "C" {
+#endif
+uint8_t temprature_sens_read();
+#ifdef __cplusplus
+}
+#endif
+
+static esp_err_t system_stats_handler(httpd_req_t *req) {
+  static char json_response[512];
+  
+  // Calculate uptime
+  unsigned long uptime_ms = millis() - systemStartTime;
+  unsigned long uptime_sec = uptime_ms / 1000;
+  unsigned long uptime_min = uptime_sec / 60;
+  unsigned long uptime_hrs = uptime_min / 60;
+  unsigned long uptime_days = uptime_hrs / 24;
+  
+  // Get ESP32 temperature (Fahrenheit)
+  float temp_f = (temprature_sens_read() - 32) / 1.8;
+  float temp_c = temp_f;  // Already in Celsius
+  
+  // Get WiFi stats
+  int rssi = WiFi.RSSI();  // Signal strength
+  int clients = WiFi.softAPgetStationNum();  // Connected clients
+  
+  // Get memory stats
+  uint32_t free_heap = ESP.getFreeHeap();
+  uint32_t total_heap = ESP.getHeapSize();
+  uint32_t free_psram = ESP.getFreePsram();
+  uint32_t total_psram = ESP.getPsramSize();
+  
+  char *p = json_response;
+  *p++ = '{';
+  
+  // Uptime
+  p += sprintf(p, "\"uptime_days\":%lu,", uptime_days);
+  p += sprintf(p, "\"uptime_hours\":%lu,", uptime_hrs % 24);
+  p += sprintf(p, "\"uptime_minutes\":%lu,", uptime_min % 60);
+  p += sprintf(p, "\"uptime_seconds\":%lu,", uptime_sec % 60);
+  p += sprintf(p, "\"uptime_total_sec\":%lu,", uptime_sec);
+  
+  // Temperature
+  p += sprintf(p, "\"temp_celsius\":%.1f,", temp_c);
+  p += sprintf(p, "\"temp_fahrenheit\":%.1f,", (temp_c * 1.8) + 32);
+  
+  // Video stats
+  p += sprintf(p, "\"fps\":%u,", currentFPS);
+  p += sprintf(p, "\"total_frames\":%lu,", totalFrames);
+  p += sprintf(p, "\"streaming\":%s,", isStreaming ? "true" : "false");
+  
+  // WiFi stats
+  p += sprintf(p, "\"wifi_rssi\":%d,", rssi);
+  p += sprintf(p, "\"wifi_clients\":%d,", clients);
+  
+  // Memory stats
+  p += sprintf(p, "\"free_heap\":%u,", free_heap);
+  p += sprintf(p, "\"total_heap\":%u,", total_heap);
+  p += sprintf(p, "\"heap_usage\":%.1f,", 100.0 * (total_heap - free_heap) / total_heap);
+  p += sprintf(p, "\"free_psram\":%u,", free_psram);
+  p += sprintf(p, "\"total_psram\":%u,", total_psram);
+  
+  if (total_psram > 0) {
+    p += sprintf(p, "\"psram_usage\":%.1f", 100.0 * (total_psram - free_psram) / total_psram);
+  } else {
+    p += sprintf(p, "\"psram_usage\":0.0");
+  }
+  
+  *p++ = '}';
+  *p++ = 0;
+  
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
 //  Start Camera Web Server
 // ==================================================================
 void startCameraServer() {
@@ -594,6 +691,16 @@ void startCameraServer() {
 #endif
   };
 
+  httpd_uri_t system_stats_uri = {
+    .uri = "/system-stats",
+    .method = HTTP_GET,
+    .handler = system_stats_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
   // ---- URI for the stream server (port 81) ----
   httpd_uri_t stream_uri = {
     .uri = "/stream",
@@ -617,6 +724,7 @@ void startCameraServer() {
     httpd_register_uri_handler(camera_httpd, &capture_uri);
     httpd_register_uri_handler(camera_httpd, &save_photo_uri);
     httpd_register_uri_handler(camera_httpd, &led_uri);
+    httpd_register_uri_handler(camera_httpd, &system_stats_uri);
   }
 
   // Start stream HTTP server on port 81
