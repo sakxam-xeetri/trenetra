@@ -11,6 +11,8 @@
 #ifndef CAMERA_INDEX_H
 #define CAMERA_INDEX_H
 
+#include <pgmspace.h>
+
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en">
