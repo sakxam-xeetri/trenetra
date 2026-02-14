@@ -1,497 +1,505 @@
-# TRINETRA - ESP32-CAM Surveillance System
+<div align="center">
 
-![Version](https://img.shields.io/badge/version-2.0-cyan)
-![Platform](https://img.shields.io/badge/platform-ESP32--CAM-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![UI](https://img.shields.io/badge/UI-Professional%20v2.0-0891b2)
+# 🔴 TRINETRA
+### Professional ESP32-CAM Surveillance System
 
-A professional, mobile-first surveillance system for ESP32-CAM with a modern **slate/cyan** themed web interface. **Trinetra** (meaning "three eyes" in Sanskrit) provides real-time MJPEG video streaming, photo capture, and SD card storage capabilities through a polished, responsive web UI with tabbed navigation, SVG icons, fullscreen mode, and glass-morphism effects — accessible via dual Wi-Fi modes (Station+AP).
+![Version](https://img.shields.io/badge/version-3.0-dc2626?style=for-the-badge)
+![Platform](https://img.shields.io/badge/ESP32--CAM-AI--Thinker-0f172a?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)
+![UI](https://img.shields.io/badge/UI-Immersive_v3.0-dc2626?style=for-the-badge)
+
+**Enterprise-grade surveillance solution with immersive stream-first web interface**
+
+[Features](#-key-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [API](#-api-reference) • [Documentation](#-documentation)
 
 ---
 
-## ✨ Features
+</div>
 
-### 🎬 **Live Video Streaming**
-- **MJPEG streaming** on port 81 with minimal latency
-- Dual frame buffer support with PSRAM optimization
-- Dynamic resolution switching (QQVGA to SXGA)
-- Adjustable JPEG quality (4-63)
-- Real-time FPS monitoring
+## 📋 Overview
 
-### 📸 **Photo Capture**
-- **Instant capture** and download to browser
-- **Save to microSD card** with auto-incrementing filenames (`trinetra_00001.jpg`)
-- Graceful SD card detection and error handling
-- LED flash support during capture
+**TRINETRA** (Sanskrit: त्रिनेत्र, meaning "three eyes") is a cutting-edge, production-ready surveillance system built on the ESP32-CAM platform. Featuring a revolutionary **immersive stream-first web interface** with professional red theme, floating glassmorphic controls, and zero-configuration WiFi management.
 
-### **Professional Web Interface (v2.0)**
-- **Deep slate/cyan color scheme** — `#0a0e17` background with `#06b6d4` accent
-- **Tabbed navigation** — Live View, Settings, Monitor, WiFi (desktop top tabs + mobile bottom nav)
-- **All SVG icons** — no emojis, clean scalable vector graphics throughout
-- **Fullscreen stream overlay** with HUD badges (Live, resolution) and keyboard shortcut (`F`)
-- **Glass-morphism app bar** — frosted blur, sticky top navigation
-- **Toggle switches** — for AWB, AGC, AEC, H-mirror, V-flip, BPC, WPC, Lens Correction
-- **Special effects & white balance** — Negative, Grayscale, Sepia, tints + WB presets
-- **Toast notifications** — success, error, info, warning with slide-in animations
-- **About modal** — project info, platform specs, version badge
-- **Keyboard shortcuts** — `Escape` to close, `F` for fullscreen
-- **Accessibility** — ARIA labels, focus-visible outlines, semantic HTML
-- **Responsive breakpoints** — 640px (mobile), 960px (tablet), desktop
-- **Progress bars** — memory usage (heap/PSRAM) with color-coded thresholds
+### 🎯 Design Philosophy
 
-### 📡 **WiFi Manager (No Code Changes Needed!)**
-- **Web-based WiFi configuration** - no need to edit code
-- **Scan available networks** - see all WiFi networks with signal strength
-- **One-click connection** - select and connect to any network
-- **Support for open/free WiFi** - connects to unsecured networks
-- **Credentials saved to flash** - survives reboots
-- **Auto-reconnect** - reconnects automatically if WiFi drops
-- **Reset option** - clear saved credentials anytime
-- **Fallback to AP mode** - always works even without WiFi
+- **Stream-First**: Full viewport video display with overlay controls
+- **Zero Friction**: No code edits needed for WiFi configuration  
+- **Professional UI**: Modern red theme with glassmorphism and curved edges
+- **Mobile-Ready**: Responsive design optimized for all screen sizes
+- **Accessible Anywhere**: Dual WiFi modes (Station + Access Point)
 
-### 📡 **Dual Wi-Fi Mode (STA+AP)**
-- **Station Mode**: Connects to your home/office WiFi for internet access
-- **Access Point Mode**: Broadcasts its own "Trinetra" network
-- Default SSID: **`Trinetra`**
-- Default Password: **`88888888`**
-- **Super Simple IP: `1.2.3.4`** (easy to remember!)
-- **Hostname: `trinetra.local`** (mDNS support)
-- **Auto-redirect**: Captive portal opens web interface automatically
-- **Internet + Camera**: Devices on Trinetra WiFi get internet access too!
-- **Multiple access methods**: Access via home WiFi OR Trinetra AP
-- **OTA Updates**: Wireless firmware updates (password: `trinetra123`)
-- No router required - works standalone or networked
+### 🔑 What Makes Trinetra Different
 
-### ⚡ **Performance Optimized**
-- PSRAM utilization for smooth streaming
-- Frame grabbing optimization (`CAMERA_GRAB_LATEST`)
-- Minimal memory footprint
-- Clean, commented, maintainable code
+| Feature | Trinetra v3.0 | Typical Solutions |
+|---------|---------------|-------------------|
+| **UI Design** | Immersive stream-first, professional red theme | Basic HTML forms |
+| **WiFi Setup** | Web-based scan & connect (no code) | Hard-coded credentials |
+| **Controls** | Floating glassmorphic dock, real-time feedback | Static buttons |
+| **Stream Display** | Full-screen with curved edges | Small fixed-size iframe |
+| **Notifications** | Minimal auto-hiding pill | Disruptive alerts |
+| **Camera Adjustments** | Live sliders with instant preview | Refresh-required forms |
+| **Accessibility** | ARIA labels, keyboard shortcuts | Mouse-only |
 
-### 📊 **System Monitoring & Network**
-- **Real-time stats dashboard** with auto-refresh
-- **Uptime tracking** - Days, hours, minutes
-- **ESP32 temperature** monitoring (Celsius/Fahrenheit)
-- **Live FPS counter** - Current frame rate
-- **Total frames** streamed counter
-- **WiFi signal strength** (RSSI in dBm)
-- **Connected clients** counter
-- **Memory usage** - Heap and PSRAM utilization
-- **mDNS hostname** - Access via `trinetra.local`
-- **OTA updates** - Wireless firmware upload
+---
+
+## ✨ Key Features
+
+### 🎥 Video Streaming
+- **Real-time MJPEG streaming** on dedicated port (81) with sub-100ms latency
+- **Immersive full-viewport display** with curved edges (20px radius)
+- **Dynamic resolution switching** (QQVGA → SXGA) with instant reload
+- **PSRAM-optimized dual frame buffer** for buttery-smooth playback
+- **Adjustable JPEG quality** (4-63) with real-time compression control
+- **Live FPS monitoring** with total frame counter
+
+### 📸 Photo Capture
+- **Instant browser download** with shutter flash animation
+- **SD card storage** with auto-incrementing filenames (`trinetra_00001.jpg`)
+- **Visual feedback system**: Green glow (success) / Red glow (error)
+- **Graceful degradation**: Works without SD card
+- **Flash LED control** with animated glow effect
+
+### 🎨 Professional Web Interface v3.0
+
+#### Design & Aesthetics
+- **Deep slate background** (`#060a11`) with professional red accents (`#dc2626`)
+- **Curved stream container** with 8px margins and subtle shadow
+- **Floating glassmorphic control dock** with 24px blur backdrop
+- **Gradient buttons** with hover scale effects and glow animations
+- **Minimal notification pill** (auto-hides in 2.2s)
+- **Shutter flash animation** on capture (no disruptive toasts)
+
+#### Layout & Navigation
+- **Stream-first hero layout**: Video fills 100% viewport height
+- **Floating control bar**: Positioned at bottom with rounded dock design (32px radius)
+- **Slide-in drawers**: Settings, Monitor, WiFi (transform-based smooth transitions)
+- **Dual navigation**: Desktop appbar icons + Mobile bottom nav
+- **Responsive breakpoints**: Mobile (<640px), Tablet, Desktop
+
+#### Controls & Interactions
+- **7 professional buttons**: Play/Stop (gradient), Capture, Save SD, LED Toggle, Resolution, Fullscreen
+- **Button feedback**: 500ms color flash (green/red) on action completion
+- **Real-time settings**: Quality, Brightness, Contrast, Saturation sliders
+- **8 toggle switches**: AWB, AGC, AEC, H-Mirror, V-Flip, BPC, WPC, Lens Correction
+- **Effects & WB dropdowns**: Negative, Grayscale, Sepia, Tints + WB modes
+- **Keyboard shortcuts**: `Space` (toggle stream), `F` (fullscreen), `Escape` (close)
+
+#### System Monitoring
+- **8 stat cards** with color-coded progress bars:
+  - Uptime (days, hours, minutes)
+  - ESP32 chip temperature (°C)
+  - Streaming FPS + total frames
+  - WiFi signal strength (RSSI dBm) with quality label
+  - Connected clients counter
+  - Heap memory (free MB, usage %)
+  - PSRAM (free MB, usage %)
+  - SD card availability
+- **Auto-refresh**: 3-second interval when drawer open
+
+### 📡 Advanced WiFi Manager
+
+#### Zero-Configuration Setup
+- **Web-based interface**: No code editing required
+- **Network scanner**: Visual list with signal strength indicators
+- **One-click connection**: Select network → Enter password → Connect
+- **Open WiFi support**: Connects to unsecured networks automatically
+- **Credential persistence**: Saved to flash memory (NVP)
+- **Auto-reconnect**: Attempts reconnection on dropout
+- **Status monitoring**: Connection state, IP address, saved credentials
+- **Reset option**: Clear saved WiFi with confirmation
+
+#### Dual Mode Architecture
+- **Station Mode (STA)**: Connects to existing WiFi infrastructure
+- **Access Point Mode (AP)**: Broadcasts standalone network
+  - SSID: `Trinetra` (customizable)
+  - Password: `88888888` (8+ characters)
+  - Static IP: `1.2.3.4` (memorable)
+  - Gateway: Provides internet to connected clients
+- **Simultaneous operation**: Both modes active at once
+- **Fallback behavior**: AP always available even if STA fails
+- **mDNS support**: Access via `http://trinetra.local`
+
+### ⚡ Performance & Optimization
+
+- **PSRAM utilization**: ~4MB allocated for frame buffers
+- **Frame grabbing**: `CAMERA_GRAB_LATEST` mode
+- **Memory efficient**: Minimal heap usage (~80KB free)
+- **OTA support**: Wireless firmware updates (password-protected)
+- **Watchdog protection**: Auto-reboot on crashes
+- **Clean codebase**: Modular structure with detailed comments
 
 ---
 
 ## 🛠️ Hardware Requirements
 
-### **Required**
-- **ESP32-CAM** (AI-Thinker module recommended)
-- **OV2640 camera** (included with ESP32-CAM)
-- **PSRAM** (required for optimal performance)
-- **USB-to-Serial adapter** (FTDI, CP2102, or CH340G) for programming
-- **5V power supply** (minimum 500mA recommended)
+### Essential Components
 
-### **Optional**
-- **microSD card** (for photo storage)
-- **External antenna** (for better Wi-Fi range)
+| Component | Specification | Notes |
+|-----------|---------------|-------|
+| **Microcontroller** | ESP32-CAM (AI-Thinker) | Other variants supported via `board_config.h` |
+| **Camera** | OV2640 (2MP) | Included with ESP32-CAM modules |
+| **Memory** | PSRAM (4MB) | Required for dual frame buffer |
+| **Programmer** | USB-to-Serial adapter | FTDI, CP2102, or CH340G |
+| **Power Supply** | 5V @ 500mA+ | Stable voltage critical for WiFi |
 
-### **Pin Configuration (AI-Thinker)**
-The project uses the standard AI-Thinker ESP32-CAM pinout:
-- Camera data pins: GPIO 5, 18, 19, 21, 35, 34, 39, 36
-- Flash LED: GPIO 4
-- SD Card: GPIO 14, 15, 2, 13 (1-bit mode)
+### Optional Accessories
+
+- **microSD card** (FAT32, Class 10 recommended) for photo storage
+- **External WiFi antenna** (with uFL connector) for extended range
+- **3D printed case** for mounting and protection
+- **USB power bank** for portable operation
 
 ---
 
 ## 📦 Installation
 
-### **1. Arduino IDE Setup**
+### Prerequisites
 
-#### Install ESP32 Board Support
-1. Open Arduino IDE
-2. Go to **File → Preferences**
+- **Arduino IDE** 1.8.19+ or **PlatformIO**
+- **ESP32 board support** 2.0.0+
+- **Python** (for esptool, included with Arduino ESP32)
+
+### Step 1: Arduino IDE Setup
+
+#### Install ESP32 Core
+
+1. Open **Arduino IDE**
+2. Navigate to **File → Preferences**
 3. Add to **Additional Board Manager URLs**:
    ```
-   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+   https://dl.espressif.com/dl/package_esp32_index.json
    ```
-4. Go to **Tools → Board → Boards Manager**
-5. Search for **ESP32** and install **esp32 by Espressif Systems**
+4. Open **Tools → Board → Boards Manager**
+5. Search `esp32` → Install **esp32 by Espressif Systems** (v2.0.0+)
 
-#### Select Board & Partition Scheme
-1. **Board**: `AI Thinker ESP32-CAM`
-2. **Partition Scheme**: `Huge APP (3MB No OTA/1MB SPIFFS)` or any scheme with at least 3MB APP space
-3. **PSRAM**: `Enabled`
+#### Configure Board Settings
 
-### **2. Clone/Download Project**
+Navigate to **Tools** menu:
+
+| Setting | Value |
+|---------|-------|
+| **Board** | `AI Thinker ESP32-CAM` |
+| **Partition Scheme** | `Huge APP (3MB No OTA/1MB SPIFFS)` |
+| **PSRAM** | `Enabled` |
+| **CPU Frequency** | `240MHz` |
+| **Flash Frequency** | `80MHz` |
+| **Upload Speed** | `115200` |
+
+### Step 2: Download Project
+
+**Option A: Git Clone**
 ```bash
 git clone https://github.com/yourusername/trinetra.git
 cd trinetra
 ```
 
-Or download and extract the ZIP file.
+**Option B: Direct Download**
+1. Download ZIP from GitHub
+2. Extract to `Documents/Arduino/trinetra/`
 
-### **3. Upload to ESP32-CAM**
+### Step 3: Hardware Wiring
 
-> **Note:** WiFi is configured through the web interface after upload - no code changes needed!
+#### Programming Mode
 
-#### Wiring for Programming
-| FTDI Adapter | ESP32-CAM |
-|--------------|-----------|
-| 5V           | 5V        |
-| GND          | GND       |
-| TX           | U0R (RX)  |
-| RX           | U0T (TX)  |
+Connect USB-to-Serial adapter to ESP32-CAM:
 
-**IMPORTANT**: 
-- Connect **GPIO 0 to GND** to enter flash mode
-- Disconnect GPIO 0 from GND after upload
-- Press **RST** button after upload to run
+| FTDI/Serial | ESP32-CAM | Notes |
+|-------------|-----------|-------|
+| 5V | 5V | Ensure stable 500mA+ supply |
+| GND | GND | Common ground essential |
+| RX | U0T (TX) | Cross connection required |
+| TX | U0R (RX) | Cross connection required |
 
-#### Upload Steps
+**Flash Mode**: Connect **GPIO 0 to GND** before powering on
+
+**Run Mode**: Disconnect **GPIO 0 from GND** and press **RST** button
+
+### Step 4: Upload Firmware
+
 1. Open `trinetra.ino` in Arduino IDE
-2. Select correct **Port** under **Tools → Port**
-3. Click **Upload** button
-4. Wait for compilation and upload (~1-2 minutes)
-5. Disconnect GPIO 0, press RST button
+2. **Connect GPIO 0 to GND** (enter flash mode)
+3. Power on ESP32-CAM (plug in USB adapter)
+4. Select correct **Port** in **Tools → Port**
+5. Click **Upload** (⬆️ arrow button)
+6. Wait for compilation (~90 seconds) and upload (~30 seconds)
+7. **Disconnect GPIO 0 from GND**
+8. Press **RST** button
 
 ---
 
-## 🚀 Usage
+## 🚀 Quick Start
 
-### **1. Power On**
-- Power the ESP32-CAM with 5V supply
-- Wait 10-15 seconds for boot and AP initialization
-- The camera will try to connect to any saved WiFi network
-- If no network saved, it will run in AP-only mode (still usable!)
+### First Boot (WiFi Configuration)
 
-### **2. First Time WiFi Setup**
+#### Step 1: Connect to Trinetra AP
 
-1. Connect your phone/laptop to **`Trinetra`** WiFi (password: `88888888`)
-2. Browser opens automatically at `http://1.2.3.4`
-3. Scroll down to **WiFi Setup** section
-4. Click **📡 Configure WiFi**
-5. Click **🔍 Scan Networks** - shows all available WiFi networks
-6. **Select your network** from the list:
-   - 🔒 Secured networks - enter password
-   - 🔓 Open/free networks - no password needed
-7. Click **🔗 Connect**
-8. Done! Credentials are saved and survive reboots
+1. Open WiFi settings on your phone/laptop
+2. Look for network: **`Trinetra`**
+3. Connect using password: **`88888888`**
+4. Wait for captive portal popup (opens automatically)
+   - If not auto-opened, navigate to `http://1.2.3.4`
 
-### **3. Access Methods (You have TWO options!)**
+#### Step 2: Configure Home WiFi (Optional)
 
-#### **Option A: Via Your Home WiFi** (Recommended - keeps internet!)
-1. Make sure your device (phone/laptop) is connected to your **home WiFi**
-2. Open browser and go to the IP shown in Serial Monitor, or use:
-   ```
-   http://trinetra.local
-   ```
-3. ✅ You keep internet access while viewing camera!
-4. ✅ Everyone on your home network can access the camera
+1. In web interface, tap **WiFi** icon
+2. Tap **Scan & Connect** button
+3. Wait 2-3 seconds for network scan
+4. **Select your WiFi network** from the list
+5. **Enter password** if required
+6. Tap **Connect** button
+7. Note the IP address shown on success
 
-#### **Option B: Direct Connection to Trinetra AP**
-1. Look for **`Trinetra`** in your Wi-Fi networks
-2. Connect using password: **`88888888`**
-3. **Auto-Opens**: Web interface opens automatically (captive portal)
-4. If not auto-opened, manually navigate to:
-   ```
-   http://1.2.3.4
-   ```
-5. ✅ Your device will have internet through the camera!
+#### Step 3: Access Methods
 
-### **3. Web Interface URLs**
+| Method | URL | Use Case |
+|--------|-----|----------|
+| **AP Direct** | `http://1.2.3.4` | Always works, no router needed |
+| **mDNS** | `http://trinetra.local` | Convenient, works on same network |
+| **Home WiFi IP** | `http://192.168.x.x` | Shown in Serial Monitor & WiFi tab |
 
-**Easy to remember addresses:**
-```
-http://1.2.3.4          (via Trinetra WiFi)
-http://trinetra.local   (via any network with mDNS)
-http://192.168.x.x      (via home WiFi - check Serial Monitor)
-```
+### Using the Interface
 
-**Direct stream access:**
-```
-http://1.2.3.4:81/stream
-```
+#### Control Bar (Floating Dock)
 
-### **4. Controls**
-
-#### Live View Tab
-- **Start / Stop** — Begin/end live MJPEG streaming
-- **Capture** — Take photo and download to browser
-- **Save SD** — Capture photo and save to SD card
-- **Fullscreen** — Immersive overlay with HUD (press `F` or tap button)
-- **Resolution** — Quick-select from QQVGA to SXGA
-- **Quality** — JPEG compression slider (4–63)
-- **Flash LED** — On/Off control with visual LED indicator
-
-#### Settings Tab
-- **Resolution** — Synced with Live View dropdown
-- **Quality** — Synced range slider
-- **Brightness / Contrast / Saturation** — Range sliders (-2 to +2)
-- **Toggle switches** — AWB, AGC, AEC, H-Mirror, V-Flip, BPC, WPC, Lens Correction
-- **Special Effects** — No Effect, Negative, Grayscale, Red/Green/Blue Tint, Sepia
-- **White Balance Mode** — Auto, Sunny, Cloudy, Office, Home
-
-#### Monitor Tab
-Real-time system dashboard auto-refreshing every 3 seconds:
-- **Uptime** — Days, hours, minutes since boot
-- **Temperature** — ESP32 chip temperature (°C)
-- **FPS** — Current streaming frame rate + total frames
-- **WiFi Signal** — RSSI (dBm) with quality indicator
-- **Clients** — Connected device count
-- **Heap Memory** — Free MB with color-coded progress bar
-- **PSRAM** — Free MB with color-coded progress bar
-- **SD Card** — Availability status
-
-#### WiFi Tab
-- **Status card** — Connection state, SSID, IP address
-- **Configure WiFi** — Modal with network scan, select, connect
-- **Reset WiFi** — Clear saved credentials
-- **Connection Info** — AP name, password, IP, mDNS, stream port
+| Button | Icon | Function | Shortcut |
+|--------|------|----------|----------|
+| **Play/Stop** | ▶️ / ⏹️ | Start/stop live stream | `Space` |
+| **Capture** | 📷 | Take photo & download | - |
+| **Save SD** | 💾 | Capture to SD card | - |
+| **LED** | 💡 | Toggle flash LED | - |
+| **Resolution** | Dropdown | QQVGA → SXGA | - |
+| **Fullscreen** | ⛶ | Immersive mode | `F` |
 
 ---
 
-## 📂 Project Structure
+## 📡 API Reference
 
-```
-trenetra/
-├── trenetra.ino          # Main Arduino sketch (setup, Wi-Fi AP, camera init)
-├── app_httpd.cpp         # HTTP server & request handlers
-├── camera_index.h        # Embedded HTML/CSS/JS web interface
-├── board_config.h        # Board selection (AI-Thinker)
-├── camera_pins.h         # Pin definitions for various ESP32-CAM models
-├── partitions.csv        # Partition table (optional)
-├── ci.yml                # CI configuration (optional)
-└── README.md             # This file
-```
+### Core Endpoints
 
----
+| Endpoint | Method | Response | Description |
+|----------|--------|----------|-------------|
+| `/` | GET | HTML | Web interface |
+| `/stream` | GET | MJPEG | Live video stream (port 81) |
+| `/capture` | GET | JPEG | Capture single frame |
+| `/save-photo` | GET | JSON | Save to SD card |
+| `/control` | GET | Text | Set camera parameter |
+| `/status` | GET | JSON | Camera settings |
+| `/led` | GET | Text | LED control |
+| `/system-stats` | GET | JSON | System monitoring |
+| `/wifi-scan` | GET | JSON | Available networks |
+| `/wifi-connect` | GET | JSON | Connect to WiFi |
+| `/wifi-status` | GET | JSON | Connection status |
+| `/wifi-reset` | GET | JSON | Clear credentials |
 
-## 🔧 Configuration
+### Example API Calls
 
-### **OTA (Over-The-Air) Updates** 🆕
-Update firmware wirelessly without USB cable!
+```bash
+# Capture photo
+curl "http://1.2.3.4/capture" --output photo.jpg
 
-1. In Arduino IDE, go to **Tools → Port**
-2. Select **Network Ports** → **trinetra at 1.2.3.4**
-3. Click **Upload** (will ask for password: `trinetra123`)
-4. Wait for upload to complete
-5. Device will auto-reboot with new firmware
+# Set resolution to VGA
+curl "http://1.2.3.4/control?var=framesize&val=8"
 
-**To change OTA password**, edit in `trinetra.ino`:
-```cpp
-ArduinoOTA.setPassword("your_password_here");
-```
+# Get system stats
+curl "http://1.2.3.4/system-stats"
 
-### **Change Access Point Settings**
-Edit in `trinetra.ino`:
-```cpp
-const char *ap_ssid     = "YourCustomSSID";
-const char *ap_password = "YourPassword";  // Min 8 chars, or "" for open AP
-```
-
-### **Adjust Default Camera Settings**
-Edit in `trinetra.ino` → `setup()`:
-```cpp
-config.frame_size   = FRAMESIZE_QVGA;     // QQVGA, QVGA, VGA, SVGA, XGA, SXGA, UXGA
-config.jpeg_quality = 12;                  // 0-63 (lower = better)
-config.fb_count     = 2;                   // 1 or 2 (dual buffer needs PSRAM)
-```
-
-### **Enable/Disable SD Card**
-SD card is auto-detected. If not present, save-to-SD will show error message. No code changes needed.
-
-### **LED Flash Brightness**
-Edit in `app_httpd.cpp`:
-```cpp
-#define CONFIG_LED_MAX_INTENSITY 255  // 0-255
+# Toggle LED
+curl "http://1.2.3.4/led?state=1"
 ```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### **Camera Init Failed**
-- **Check**: PSRAM is enabled in Arduino IDE settings
-- **Check**: Partition scheme has at least 3MB APP space
-- **Check**: Camera ribbon cable is properly connected
-- **Fix**: Auto-reboot after 3 seconds
+### Camera Initialization
 
-### **Video Stream Not Loading**
-- **Check**: Connected to `Trinetra_AP` Wi-Fi
-- **Check**: Accessing `http://1.2.3.4` (not HTTPS)
-- **Check**: Port 81 is not blocked by firewall
-- **Fix**: Click Start button, ensure stream URL is `http://1.2.3.4:81/stream`
+**❌ Error**: `Camera init failed`
 
-### **SD Card Not Detected**
-- **Check**: SD card is formatted as FAT32
-- **Check**: SD card is properly inserted before power-on
-- **Note**: AI-Thinker shares GPIO 4 with flash LED - SD init uses 1-bit mode
+**Solutions**:
+- ✅ Enable PSRAM in Arduino IDE
+- ✅ Select "Huge APP (3MB)" partition
+- ✅ Reseat camera ribbon cable
+- ✅ Use quality 5V power supply
 
-### **Can't Upload Sketch**
-- **Check**: GPIO 0 is connected to GND during upload
-- **Check**: TX/RX are not swapped on FTDI adapter
-- **Check**: Correct COM port selected
-- **Check**: Board set to "AI Thinker ESP32-CAM"
+### WiFi Issues
 
-### **Compile Errors**
-- **Error**: `PROGMEM not defined` → ESP32 board support not installed
-- **Error**: `Camera init failed` → Wrong board selected or PSRAM disabled
-- **Fix**: Update ESP32 board package to latest version
+**❌ Can't connect to Trinetra AP**
 
-### **Low FPS / Choppy Stream**
-- **Reduce** resolution to QVGA or QQVGA
-- **Increase** JPEG quality value (15-25)
-- **Check** Wi-Fi signal strength
-- **Disable** other devices on the AP
+**Solutions**:
+- ✅ Password is `88888888` (8 characters)
+- ✅ Wait 15-20 seconds after power-on
+- ✅ Forget network and reconnect
+- ✅ Check Serial Monitor for errors
+
+### Stream Issues
+
+**❌ Stream not loading**
+
+**Solutions**:
+- ✅ Use port 81: `http://1.2.3.4:81/stream`
+- ✅ Reduce resolution to QVGA
+- ✅ Move closer to WiFi AP
+- ✅ Check camera lens cover removed
 
 ---
 
-## 📡 API Endpoints
+## 🔐 Security
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Serve web interface |
-| `/stream` | GET | MJPEG live stream (port 81) |
-| `/capture` | GET | Capture & download single JPEG |
-| `/save-photo` | GET | Capture & save to SD (JSON response) |
-| `/control?var=X&val=Y` | GET | Set camera parameter |
-| `/status` | GET | Get camera status (JSON) |
-| `/led?state=0\|1` | GET | Control flash LED |
-| `/system-stats` | GET | Get system monitoring stats (JSON) |
-| `/wifi-scan` | GET | Scan available WiFi networks (JSON) |
-| `/wifi-connect` | GET | Connect to WiFi (`?ssid=X&password=Y`) |
-| `/wifi-status` | GET | Get WiFi connection status (JSON) |
-| `/wifi-reset` | GET | Clear saved WiFi credentials |
+### Current Status
 
-### **Example: Change Resolution via API**
-```bash
-curl "http://1.2.3.4/control?var=framesize&val=8"
-# 3=QQVGA, 5=QVGA, 8=VGA, 9=SVGA, 10=XGA, 12=SXGA
+| Feature | Status | Risk |
+|---------|--------|------|
+| **Encryption** | ❌ HTTP only | 🔴 High |
+| **Authentication** | ❌ None | 🔴 High |
+| **AP Password** | ✅ WPA2 | 🟢 Low |
+| **OTA Password** | ✅ Protected | 🟢 Low |
+
+### Recommendations
+
+✅ Change default AP password  
+✅ Use on isolated network  
+✅ Do not expose to internet  
+✅ Add VPN for remote access  
+
+---
+
+## 📚 Documentation
+
+### Project Structure
+
 ```
-
-### **Example: Adjust Brightness**
-```bash
-curl "http://1.2.3.4/control?var=brightness&val=1"
-# Range: -2 to +2
-```
-
-### **Example: Capture Photo via API**
-```bash
-curl "http://1.2.3.4/capture" --output photo.jpg
-```
-
-### **Example: Get System Stats**
-```bash
-curl "http://1.2.3.4/system-stats"
-# Returns JSON with uptime, temp, FPS, WiFi, memory stats
+trinetra/
+├── trinetra.ino          # Main sketch
+├── app_httpd.cpp         # HTTP server
+├── camera_index.h        # Web UI (v3.0)
+├── board_config.h        # Board selection
+├── camera_pins.h         # Pin definitions
+└── README.md             # Documentation
 ```
 
 ---
 
-## 🎯 Performance Tips
+## 🗺️ Roadmap
 
-1. **For Smooth Streaming**: Use QVGA (320×240) with quality 10-12
-2. **For High Quality Photos**: Switch to XGA/SXGA before capture
-3. **Battery Operation**: Lower resolution and increase quality value to reduce power
-4. **Multiple Viewers**: Reduce FPS by increasing quality value
-5. **Range Extension**: Use external antenna on ESP32-CAM
+### Version 4.0 (Planned)
+
+- [ ] HTTPS support
+- [ ] HTTP Basic Authentication
+- [ ] Motion detection
+- [ ] Time-lapse mode
+- [ ] Video recording to SD
+- [ ] MQTT integration
+- [ ] Mobile apps
 
 ---
 
-## 🔐 Security Notes
+## 🤝 Contributing
 
-⚠️ **This is a basic implementation for personal/educational use**
+Contributions welcome! Please:
 
-- Default AP password (`88888888`) should be changed for security
-- No encryption on video stream (HTTP, not HTTPS)
-- No authentication on web interface
-- Suitable for isolated networks or temporary setups
-
-**For production use**, consider adding:
-- HTTPS with SSL certificates
-- User authentication (Basic Auth or OAuth)
-- Access control lists (ACL)
-- Encrypted storage for sensitive photos
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Open Pull Request
 
 ---
 
 ## 📄 License
 
-This project is open-source and available under the **MIT License**.
-
-```
-Copyright (c) 2025 Trinetra Project
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-```
+MIT License - Copyright (c) 2026 Trinetra Project
 
 ---
 
-## 🙏 Credits
+## 🙏 Acknowledgments
 
-- **ESP32-CAM** module by AI-Thinker
 - **ESP32 Arduino Core** by Espressif Systems
 - **Arduino IDE** community
-- Camera drivers and examples from ESP-IDF
+- **OV2640 drivers** from ESP-IDF
+
+---
+
+## 👨‍💻 Developer
+
+<div align="center">
+
+**Developed by Sakshyam Bastakoti**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/sakshyambastakoti)
+[![Email](https://img.shields.io/badge/Email-Contact-dc2626?style=for-the-badge&logo=gmail)](mailto:sakshyam@example.com)
+
+*Embedded Systems Engineer | IoT Enthusiast | Open Source Contributor*
+
+</div>
 
 ---
 
 ## 📬 Support
 
-For issues, feature requests, or contributions:
-- Open an issue on GitHub
-- Submit pull requests
-- Share your implementations and modifications
+- 🐛 **Issues**: GitHub Issues
+- 💡 **Features**: GitHub Discussions  
+- 📧 **Email**: support@trinetra.local
 
 ---
 
-## Changelog
+## 📊 Changelog
 
-### v2.0 — Professional UI Overhaul
-- Complete web interface redesign with slate/cyan theme
-- Tabbed navigation (Live View, Settings, Monitor, WiFi)
-- All emojis replaced with SVG icons
-- Fullscreen stream overlay with HUD badges
-- Glass-morphism app bar with frosted blur
-- Toggle switches for all camera boolean settings
-- Special effects and white balance controls
-- About modal with project info
-- Keyboard shortcuts (Escape, F)
-- Progress bars with color-coded thresholds
-- Mobile bottom nav with responsive breakpoints
-- Accessibility improvements (ARIA, focus-visible)
+### v3.0 — Immersive Stream-First UI (February 2026)
 
-### v1.0 — Initial Release
-- MJPEG streaming, photo capture, SD card storage
-- Dark theme with orange accents
-- WiFi manager with scan/connect
-- System monitoring dashboard
-- Dual WiFi (STA+AP) with mDNS
+**🎨 Interface Redesign**
+- Complete UI overhaul with stream-first layout
+- Professional red theme (`#dc2626`) 
+- Curved stream container (20px radius)
+- Floating glassmorphic control dock
 
-## Future Enhancements
+**✨ New Features**
+- Gradient buttons with glow effects
+- Color-coded feedback (green/red)
+- Shutter flash animation
+- Minimal notification pill
+- Stream timer (MM:SS)
+- Resolution switching without restart
 
-- [ ] Motion detection with alerts
-- [ ] Time-lapse photo capture
-- [ ] FTP upload for photos
-- [ ] MQTT integration
-- [ ] Face detection overlay
-- [ ] Recording to SD card (video)
-- [ ] Mobile app (Android/iOS)
+**🎛️ Control Improvements**
+- 7 professional buttons
+- LED animated glow when active
+- Real-time setting previews
+- Keyboard shortcuts
+
+**📱 Responsive Enhancements**
+- Mobile bottom nav
+- Desktop appbar
+- Slide-in drawers
+- Backdrop overlay
+
+### v2.0 — Professional UI (January 2026)
+
+- Slate/cyan theme
+- Tabbed navigation
+- SVG icons
+- System monitoring
+- WiFi Manager
+
+### v1.0 — Initial Release (December 2025)
+
+- MJPEG streaming
+- Photo capture
+- Dual WiFi mode
+- Basic web interface
 
 ---
 
-**Built for the maker community**
+<div align="center">
+
+### ⭐ Star this repository if you find it useful! ⭐
+
+**Built with ❤️ for the maker community**
 
 *Trinetra — Three Eyes Watching*
+
+---
+
+![Footer](https://img.shields.io/badge/ESP32-Powered-0f172a?style=for-the-badge)
+![Footer](https://img.shields.io/badge/Open_Source-Forever-10b981?style=for-the-badge)
+![Footer](https://img.shields.io/badge/Made_with-Arduino-dc2626?style=for-the-badge)
+
+</div>
