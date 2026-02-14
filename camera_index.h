@@ -261,6 +261,51 @@ input[type=range]::-webkit-slider-thumb{
     </div>
   </div>
 
+  <!-- System Monitor -->
+  <div class="card">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)"><path d="M20 3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h3l-1 1v2h12v-2l-1-1h3c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 13H4V5h16v11z"/></svg>
+      System Monitor
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.7rem">
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">⏱️ Uptime</div>
+        <div style="color:var(--accent);font-weight:600" id="statUptime">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">🌡️ Temp</div>
+        <div style="color:var(--accent);font-weight:600" id="statTemp">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">🎥 FPS</div>
+        <div style="color:var(--accent);font-weight:600" id="statFPS">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">📊 Frames</div>
+        <div style="color:var(--accent);font-weight:600" id="statFrames">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">📡 Signal</div>
+        <div style="color:var(--accent);font-weight:600" id="statSignal">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">👥 Clients</div>
+        <div style="color:var(--accent);font-weight:600" id="statClients">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">💾 Heap</div>
+        <div style="color:var(--accent);font-weight:600" id="statHeap">--</div>
+      </div>
+      <div style="padding:6px;background:var(--surface2);border-radius:6px">
+        <div style="color:var(--text2);margin-bottom:2px">⚡ PSRAM</div>
+        <div style="color:var(--accent);font-weight:600" id="statPSRAM">--</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;text-align:center">
+      <button class="btn btn-secondary btn-sm" onclick="refreshStats()">🔄 Refresh Stats</button>
+    </div>
+  </div>
+
   <div class="footer">
     TRINETRA Surveillance System &bull; ESP32-CAM &bull; v1.0
   </div>
@@ -413,6 +458,46 @@ function ledControl(state){
     .catch(function(e){showToast('Error: '+e.message,'error');});
 }
 
+/* --- System Stats --- */
+function refreshStats(){
+  fetch(baseUrl+'/system-stats')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      // Uptime
+      var uptime='';
+      if(d.uptime_days>0) uptime+=d.uptime_days+'d ';
+      uptime+=d.uptime_hours%24+'h '+d.uptime_minutes%60+'m';
+      document.getElementById('statUptime').textContent=uptime;
+      
+      // Temperature
+      document.getElementById('statTemp').textContent=d.temp_celsius.toFixed(1)+'°C';
+      
+      // FPS & Frames
+      document.getElementById('statFPS').textContent=d.fps+' fps';
+      document.getElementById('statFrames').textContent=d.total_frames.toLocaleString();
+      
+      // WiFi
+      var signalQuality='Excellent';
+      if(d.wifi_rssi<-80) signalQuality='Poor';
+      else if(d.wifi_rssi<-70) signalQuality='Fair';
+      else if(d.wifi_rssi<-60) signalQuality='Good';
+      document.getElementById('statSignal').textContent=d.wifi_rssi+' dBm';
+      
+      // Clients
+      document.getElementById('statClients').textContent=d.wifi_clients+' online';
+      
+      // Memory
+      var heapMB=(d.free_heap/1024/1024).toFixed(1);
+      document.getElementById('statHeap').textContent=heapMB+'MB ('+d.heap_usage.toFixed(0)+'%)';
+      
+      var psramMB=(d.free_psram/1024/1024).toFixed(1);
+      document.getElementById('statPSRAM').textContent=psramMB+'MB ('+d.psram_usage.toFixed(0)+'%)';
+    })
+    .catch(function(e){
+      console.error('Stats fetch error:',e);
+    });
+}
+
 window.addEventListener('load',function(){
   updateStatus(false);
   fetch(baseUrl+'/status')
@@ -437,6 +522,10 @@ window.addEventListener('load',function(){
       document.getElementById('connLabel').textContent='Idle';
     })
     .catch(function(){document.getElementById('connLabel').textContent='Offline';});
+  
+  // Load system stats initially and refresh every 3 seconds
+  refreshStats();
+  setInterval(refreshStats,3000);
 });
 </script>
 </body>
