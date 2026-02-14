@@ -1,10 +1,11 @@
-# 🎥 TRINETRA - ESP32-CAM Surveillance System
+# TRINETRA - ESP32-CAM Surveillance System
 
-![Version](https://img.shields.io/badge/version-1.0-orange)
+![Version](https://img.shields.io/badge/version-2.0-cyan)
 ![Platform](https://img.shields.io/badge/platform-ESP32--CAM-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![UI](https://img.shields.io/badge/UI-Professional%20v2.0-0891b2)
 
-A professional, mobile-first surveillance system for ESP32-CAM with a modern dark-themed web interface. **Trinetra** (meaning "three eyes" in Sanskrit) provides real-time MJPEG video streaming, photo capture, and SD card storage capabilities through a responsive web UI accessible via dual Wi-Fi modes (Station+AP) - enjoy internet access while viewing your camera!
+A professional, mobile-first surveillance system for ESP32-CAM with a modern **slate/cyan** themed web interface. **Trinetra** (meaning "three eyes" in Sanskrit) provides real-time MJPEG video streaming, photo capture, and SD card storage capabilities through a polished, responsive web UI with tabbed navigation, SVG icons, fullscreen mode, and glass-morphism effects — accessible via dual Wi-Fi modes (Station+AP).
 
 ---
 
@@ -23,13 +24,20 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 - Graceful SD card detection and error handling
 - LED flash support during capture
 
-### 🎨 **Modern Web Interface**
-- **Dark/Stealth theme** with orange accent highlights
-- **Mobile-first responsive design** - works perfectly on phones, tablets, and desktops
-- Live stream viewer with status indicators
-- Toast notifications for all actions
-- Real-time resolution and quality controls
-- Flash LED toggle with visual indicator
+### **Professional Web Interface (v2.0)**
+- **Deep slate/cyan color scheme** — `#0a0e17` background with `#06b6d4` accent
+- **Tabbed navigation** — Live View, Settings, Monitor, WiFi (desktop top tabs + mobile bottom nav)
+- **All SVG icons** — no emojis, clean scalable vector graphics throughout
+- **Fullscreen stream overlay** with HUD badges (Live, resolution) and keyboard shortcut (`F`)
+- **Glass-morphism app bar** — frosted blur, sticky top navigation
+- **Toggle switches** — for AWB, AGC, AEC, H-mirror, V-flip, BPC, WPC, Lens Correction
+- **Special effects & white balance** — Negative, Grayscale, Sepia, tints + WB presets
+- **Toast notifications** — success, error, info, warning with slide-in animations
+- **About modal** — project info, platform specs, version badge
+- **Keyboard shortcuts** — `Escape` to close, `F` for fullscreen
+- **Accessibility** — ARIA labels, focus-visible outlines, semantic HTML
+- **Responsive breakpoints** — 640px (mobile), 960px (tablet), desktop
+- **Progress bars** — memory usage (heap/PSRAM) with color-coded thresholds
 
 ### 📡 **WiFi Manager (No Code Changes Needed!)**
 - **Web-based WiFi configuration** - no need to edit code
@@ -206,42 +214,39 @@ http://1.2.3.4:81/stream
 
 ### **4. Controls**
 
-#### Stream Control
-- **▶ Start** - Begin live MJPEG streaming
-- **■ Stop** - Stop streaming
-- **📷 Capture** - Take photo and download to browser
-- **💾 Save SD** - Capture photo and save to SD card
+#### Live View Tab
+- **Start / Stop** — Begin/end live MJPEG streaming
+- **Capture** — Take photo and download to browser
+- **Save SD** — Capture photo and save to SD card
+- **Fullscreen** — Immersive overlay with HUD (press `F` or tap button)
+- **Resolution** — Quick-select from QQVGA to SXGA
+- **Quality** — JPEG compression slider (4–63)
+- **Flash LED** — On/Off control with visual LED indicator
 
-#### Camera Settings
-- **Resolution Dropdown** - Select from QQVGA (160×120) to SXGA (1280×1024)
-  - Higher resolution = slower FPS but better quality
-  - Recommended: QVGA or VGA for smooth streaming
-- **Quality Slider** - Adjust JPEG quality (4=best, 63=worst)
-  - Lower value = better quality, larger file size
-  - Recommended: 10-15 for balanced performance
-- **Brightness Slider** - Adjust image brightness (-2 to +2)
-  - Negative = darker, Positive = brighter
-  - Default: 0
-- **Contrast Slider** - Adjust image contrast (-2 to +2)
-  - Negative = lower contrast, Positive = higher contrast
-  - Default: 0
+#### Settings Tab
+- **Resolution** — Synced with Live View dropdown
+- **Quality** — Synced range slider
+- **Brightness / Contrast / Saturation** — Range sliders (-2 to +2)
+- **Toggle switches** — AWB, AGC, AEC, H-Mirror, V-Flip, BPC, WPC, Lens Correction
+- **Special Effects** — No Effect, Negative, Grayscale, Red/Green/Blue Tint, Sepia
+- **White Balance Mode** — Auto, Sunny, Cloudy, Office, Home
 
-#### Flash LED
-- **💡 ON** - Turn on built-in flash LED
-- **OFF** - Turn off flash LED
-- Visual indicator shows current LED state
+#### Monitor Tab
+Real-time system dashboard auto-refreshing every 3 seconds:
+- **Uptime** — Days, hours, minutes since boot
+- **Temperature** — ESP32 chip temperature (°C)
+- **FPS** — Current streaming frame rate + total frames
+- **WiFi Signal** — RSSI (dBm) with quality indicator
+- **Clients** — Connected device count
+- **Heap Memory** — Free MB with color-coded progress bar
+- **PSRAM** — Free MB with color-coded progress bar
+- **SD Card** — Availability status
 
-#### System Monitor 📊 **NEW!**
-Real-time system statistics auto-refreshing every 3 seconds:
-- **⏱️ Uptime** - How long the camera has been running
-- **🌡️ Temperature** - ESP32 chip temperature in Celsius
-- **🎥 FPS** - Current streaming frame rate
-- **📊 Frames** - Total frames streamed since boot
-- **📡 Signal** - WiFi signal strength (RSSI)
-- **👥 Clients** - Number of connected devices
-- **💾 Heap** - RAM memory usage and percentage
-- **⚡ PSRAM** - PSRAM usage and percentage
-- **🔄 Refresh** - Manual refresh button
+#### WiFi Tab
+- **Status card** — Connection state, SSID, IP address
+- **Configure WiFi** — Modal with network scan, select, connect
+- **Reset WiFi** — Clear saved credentials
+- **Connection Info** — AP name, password, IP, mDNS, stream port
 
 ---
 
@@ -353,6 +358,10 @@ Edit in `app_httpd.cpp`:
 | `/status` | GET | Get camera status (JSON) |
 | `/led?state=0\|1` | GET | Control flash LED |
 | `/system-stats` | GET | Get system monitoring stats (JSON) |
+| `/wifi-scan` | GET | Scan available WiFi networks (JSON) |
+| `/wifi-connect` | GET | Connect to WiFi (`?ssid=X&password=Y`) |
+| `/wifi-status` | GET | Get WiFi connection status (JSON) |
+| `/wifi-reset` | GET | Clear saved WiFi credentials |
 
 ### **Example: Change Resolution via API**
 ```bash
@@ -393,7 +402,7 @@ curl "http://1.2.3.4/system-stats"
 
 ⚠️ **This is a basic implementation for personal/educational use**
 
-- Default password (`12345678`) should be changed for security
+- Default AP password (`88888888`) should be changed for security
 - No encryption on video stream (HTTP, not HTTPS)
 - No authentication on web interface
 - Suitable for isolated networks or temporary setups
@@ -448,9 +457,31 @@ For issues, feature requests, or contributions:
 
 ---
 
-## 🚧 Future Enhancements
+## Changelog
 
-- [ ] Multiple client streaming support
+### v2.0 — Professional UI Overhaul
+- Complete web interface redesign with slate/cyan theme
+- Tabbed navigation (Live View, Settings, Monitor, WiFi)
+- All emojis replaced with SVG icons
+- Fullscreen stream overlay with HUD badges
+- Glass-morphism app bar with frosted blur
+- Toggle switches for all camera boolean settings
+- Special effects and white balance controls
+- About modal with project info
+- Keyboard shortcuts (Escape, F)
+- Progress bars with color-coded thresholds
+- Mobile bottom nav with responsive breakpoints
+- Accessibility improvements (ARIA, focus-visible)
+
+### v1.0 — Initial Release
+- MJPEG streaming, photo capture, SD card storage
+- Dark theme with orange accents
+- WiFi manager with scan/connect
+- System monitoring dashboard
+- Dual WiFi (STA+AP) with mDNS
+
+## Future Enhancements
+
 - [ ] Motion detection with alerts
 - [ ] Time-lapse photo capture
 - [ ] FTP upload for photos
@@ -461,6 +492,6 @@ For issues, feature requests, or contributions:
 
 ---
 
-**Built with ❤️ for the maker community**
+**Built for the maker community**
 
-*Trinetra - Three Eyes Watching*
+*Trinetra — Three Eyes Watching*
