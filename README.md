@@ -35,7 +35,9 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 - Default SSID: **`Trinetra_AP`**
 - Default Password: **`12345678`**
 - **Super Simple IP: `1.2.3.4`** (easy to remember!)
+- **Hostname: `trinetra.local`** (mDNS support)
 - **Auto-redirect**: Connects and opens web interface automatically
+- **OTA Updates**: Wireless firmware updates (password: `trinetra123`)
 - No router required - direct connection
 
 ### ⚡ **Performance Optimized**
@@ -43,6 +45,18 @@ A professional, mobile-first surveillance system for ESP32-CAM with a modern dar
 - Frame grabbing optimization (`CAMERA_GRAB_LATEST`)
 - Minimal memory footprint
 - Clean, commented, maintainable code
+
+### 📊 **System Monitoring & Network**
+- **Real-time stats dashboard** with auto-refresh
+- **Uptime tracking** - Days, hours, minutes
+- **ESP32 temperature** monitoring (Celsius/Fahrenheit)
+- **Live FPS counter** - Current frame rate
+- **Total frames** streamed counter
+- **WiFi signal strength** (RSSI in dBm)
+- **Connected clients** counter
+- **Memory usage** - Heap and PSRAM utilization
+- **mDNS hostname** - Access via `trinetra.local`
+- **OTA updates** - Wireless firmware upload
 
 ---
 
@@ -144,7 +158,12 @@ Open browser and navigate to:
 http://1.2.3.4
 ```
 
-**Easy to remember:** Just type **1.2.3.4** in your browser!
+**Or use the friendly hostname:**
+```
+http://trinetra.local
+```
+
+**Easy to remember:** Just type **1.2.3.4** or **trinetra.local** in your browser!
 
 For direct stream access:
 ```
@@ -178,6 +197,18 @@ http://1.2.3.4:81/stream
 - **OFF** - Turn off flash LED
 - Visual indicator shows current LED state
 
+#### System Monitor 📊 **NEW!**
+Real-time system statistics auto-refreshing every 3 seconds:
+- **⏱️ Uptime** - How long the camera has been running
+- **🌡️ Temperature** - ESP32 chip temperature in Celsius
+- **🎥 FPS** - Current streaming frame rate
+- **📊 Frames** - Total frames streamed since boot
+- **📡 Signal** - WiFi signal strength (RSSI)
+- **👥 Clients** - Number of connected devices
+- **💾 Heap** - RAM memory usage and percentage
+- **⚡ PSRAM** - PSRAM usage and percentage
+- **🔄 Refresh** - Manual refresh button
+
 ---
 
 ## 📂 Project Structure
@@ -197,6 +228,20 @@ trenetra/
 ---
 
 ## 🔧 Configuration
+
+### **OTA (Over-The-Air) Updates** 🆕
+Update firmware wirelessly without USB cable!
+
+1. In Arduino IDE, go to **Tools → Port**
+2. Select **Network Ports** → **trinetra at 1.2.3.4**
+3. Click **Upload** (will ask for password: `trinetra123`)
+4. Wait for upload to complete
+5. Device will auto-reboot with new firmware
+
+**To change OTA password**, edit in `trinetra.ino`:
+```cpp
+ArduinoOTA.setPassword("your_password_here");
+```
 
 ### **Change Access Point Settings**
 Edit in `trinetra.ino`:
@@ -273,6 +318,7 @@ Edit in `app_httpd.cpp`:
 | `/control?var=X&val=Y` | GET | Set camera parameter |
 | `/status` | GET | Get camera status (JSON) |
 | `/led?state=0\|1` | GET | Control flash LED |
+| `/system-stats` | GET | Get system monitoring stats (JSON) |
 
 ### **Example: Change Resolution via API**
 ```bash
@@ -289,6 +335,12 @@ curl "http://1.2.3.4/control?var=brightness&val=1"
 ### **Example: Capture Photo via API**
 ```bash
 curl "http://1.2.3.4/capture" --output photo.jpg
+```
+
+### **Example: Get System Stats**
+```bash
+curl "http://1.2.3.4/system-stats"
+# Returns JSON with uptime, temp, FPS, WiFi, memory stats
 ```
 
 ---
