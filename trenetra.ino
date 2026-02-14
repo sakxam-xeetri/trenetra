@@ -4,10 +4,19 @@
  *  Main Sketch (trenetra.ino)
  * =============================================================
  *  Board:  AI-Thinker ESP32-CAM (with PSRAM)
- *  Mode:   Wi-Fi Access Point (AP)
- *  AP:     Trinetra_AP / 12345678
- *  URL:    http://192.168.4.1
- *  Stream: http://192.168.4.1:81/stream
+ *  Mode:   Wi-Fi Station + Access Point (STA+AP)
+ *  
+ *  HOME WiFi:  Configure YOUR_WIFI_SSID/PASSWORD below
+ *  Access via: http://trinetra.local or http://[home-wifi-ip]
+ *  
+ *  TRINETRA AP: "Trinetra" / 88888888
+ *  Access via:  http://1.2.3.4 (auto-opens!)
+ *  
+ *  Stream:     http://[any-ip]:81/stream
+ *  
+ *  Benefits:   ✅ Internet + Camera at same time
+ *              ✅ Multiple simultaneous viewers supported
+ *              ✅ Access from home WiFi OR Trinetra AP
  * =============================================================
  *  Features:
  *   - MJPEG live streaming (dual frame buffer)
@@ -16,6 +25,8 @@
  *   - Flash LED on/off control
  *   - Dynamic resolution & quality selection
  *   - Dark-themed responsive mobile UI
+ *   - Real-time system monitoring
+ *   - OTA wireless firmware updates
  * =============================================================
  */
 
@@ -38,8 +49,13 @@ uint8_t temprature_sens_read();
 #include "board_config.h"
 
 // =======================
-// Wi-Fi AP Configuration
+// Wi-Fi Configuration
 // =======================
+// Station Mode (connect to your home/office WiFi for internet)
+const char *sta_ssid     = "YOUR_WIFI_SSID";      // Change this!
+const char *sta_password = "YOUR_WIFI_PASSWORD";  // Change this!
+
+// Access Point Mode (Trinetra's own network)
 const char *ap_ssid     = "Trinetra";
 const char *ap_password = "88888888";   // Set to "" for open network
 // Simple IP Address: 1.2.3.4
@@ -187,9 +203,35 @@ void setup() {
   // ----- Initialize SD Card -----
   initSDCard();
 
-  // ----- Start Wi-Fi Access Point -----
+  // ----- Start Wi-Fi in STA+AP Mode (Internet + Camera) -----
+  Serial.println("[WiFi] Configuring STA+AP mode...");
+  WiFi.mode(WIFI_AP_STA);  // Enable both Station and Access Point
+  
+  // Connect to home/office WiFi (Station mode)
+  Serial.printf("[WiFi] Connecting to %s", sta_ssid);
+  WiFi.begin(sta_ssid, sta_password);
+  
+  // Wait for connection (max 20 seconds)
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 40) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  Serial.println();
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("[WiFi] ✓ Connected to home WiFi!");
+    Serial.printf("[WiFi] Station IP: %s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("[WiFi] Gateway:    %s\n", WiFi.gatewayIP().toString().c_str());
+    Serial.printf("[WiFi] DNS:        %s\n", WiFi.dnsIP().toString().c_str());
+  } else {
+    Serial.println("[WiFi] ✗ Failed to connect to home WiFi");
+    Serial.println("[WiFi] Camera will work in AP-only mode (no internet)");
+  }
+  
+  // Start Access Point (our own network)
   Serial.println("[WiFi] Starting Access Point...");
-  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(local_ip, gateway, subnet);
   WiFi.softAP(ap_ssid, ap_password);
   delay(100);  // Brief delay for AP to stabilize
@@ -209,6 +251,7 @@ void setup() {
   Serial.printf("[WiFi] AP SSID:     %s\n", ap_ssid);
   Serial.printf("[WiFi] AP Password: %s\n", ap_password);
   Serial.printf("[WiFi] AP IP:       %s\n", local_ip.toString().c_str());
+  Serial.printf("[WiFi] AP Clients:  %d\n", WiFi.softAPgetStationNum());
 
   // ----- Start Web Server -----
   startCameraServer();
@@ -247,19 +290,42 @@ void setup() {
 
   Serial.println("=================================");
   Serial.println("   TRINETRA is READY!            ");
-  Serial.printf("   Web UI:  http://%s\n", local_ip.toString().c_str());
-  Serial.printf("   Or use:  http://trinetra.local\n");
-  Serial.printf("   Stream:  http://%s:81/stream\n", local_ip.toString().c_str());
-  Serial.println("   Connect to WiFi - Auto Opens! ");
+  Serial.println("---------------------------------");
+  Serial.println("   ACCESS METHODS:               ");
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.printf("   1. Home WiFi: http://%s\n", WiFi.localIP().toString().c_str());
+    Serial.printf("      (or http://trinetra.local)\n");
+  }
+  Serial.printf("   2. Trinetra WiFi: http://%s\n", local_ip.toString().c_str());
+  Serial.println("      (Auto-opens when connected)");
+  Serial.println("---------------------------------");
+  Serial.printf("   Stream:  :81/stream\n");
   Serial.println("   OTA Password: trinetra123     ");
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("   Internet: AVAILABLE ✓         ");
+  } else {
+    Serial.println("   Internet: NOT AVAILABLE ✗     ");
+  }
   Serial.println("=================================");
 }
 
 // =======================
-// LOOP - Process DNS, OTA, and stats tracking
+// LOOP - Process DNS, OTA, WiFi reconnect, and stats
 // =======================
 void loop() {
   dnsServer.processNextRequest();  // Handle DNS for captive portal redirection
   ArduinoOTA.handle();              // Handle OTA updates
+  
+  // Auto-reconnect to home WiFi if connection is lost
+  static unsigned long lastReconnectAttempt = 0;
+  if (WiFi.status() != WL_CONNECTED) {
+    unsigned long now = millis();
+    if (now - lastReconnectAttempt > 30000) {  // Try every 30 seconds
+      lastReconnectAttempt = now;
+      Serial.println("[WiFi] Reconnecting to home WiFi...");
+      WiFi.begin(sta_ssid, sta_password);
+    }
+  }
+  
   delay(10);
 }
