@@ -402,6 +402,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <div class="irow"><span class="irow-l">Camera</span><span class="irow-v">OV2640</span></div>
 <div class="irow"><span class="irow-l">WiFi</span><span class="irow-v">STA + AP</span></div>
 </div>
+<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);text-align:center">
+<div style="font-size:.64rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Developed by</div>
+<div style="font-size:.82rem;font-weight:700;color:var(--ac)">Sakshyam Bastakoti</div>
+<div style="font-size:.62rem;color:var(--tx3);margin-top:3px">Embedded Systems Engineer</div>
+</div>
 </div>
 <div class="mo-f"><button class="btn btn-s" onclick="closeAbout()">Close</button></div>
 </div>
