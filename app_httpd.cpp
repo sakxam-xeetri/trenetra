@@ -139,6 +139,16 @@ void enable_led(bool en) {
 // =======================
 static uint32_t photoCounter = 0;
 
+// =======================
+// Video Recording State
+// =======================
+static bool isRecording = false;
+static File recordingFile;
+static uint32_t recordingCounter = 0;
+static unsigned long recordingStartTime = 0;
+static unsigned long recordingFrameCount = 0;
+static char currentRecordingFilename[64];
+
 // ==================================================================
 //  HANDLER: Serve the HTML UI
 // ==================================================================
@@ -271,6 +281,143 @@ static esp_err_t save_photo_handler(httpd_req_t *req) {
 }
 
 // ==================================================================
+//  HANDLER: Get SD Card Information
+// ==================================================================
+static esp_err_t sd_info_handler(httpd_req_t *req) {
+  char json_response[256];
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  if (!sdCardAvailable) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"available\":false,\"total\":0,\"used\":0,\"free\":0,\"percent\":0}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  uint64_t totalBytes = SD_MMC.totalBytes();
+  uint64_t usedBytes = SD_MMC.usedBytes();
+  uint64_t freeBytes = totalBytes - usedBytes;
+  float percentUsed = totalBytes > 0 ? (usedBytes * 100.0 / totalBytes) : 0;
+
+  snprintf(json_response, sizeof(json_response),
+           "{\"available\":true,\"total\":%llu,\"used\":%llu,\"free\":%llu,\"percent\":%.1f}",
+           totalBytes, usedBytes, freeBytes, percentUsed);
+
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
+//  HANDLER: Start Video Recording
+// ==================================================================
+static esp_err_t start_recording_handler(httpd_req_t *req) {
+  char json_response[256];
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  // Check if SD card is available
+  if (!sdCardAvailable) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"SD card not available\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Check if already recording
+  if (isRecording) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Already recording\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Create filename: /video_XXXXX.mjpeg
+  recordingCounter++;
+  snprintf(currentRecordingFilename, sizeof(currentRecordingFilename), 
+           "/video_%05lu.mjpeg", (unsigned long)recordingCounter);
+
+  // Open file for writing
+  recordingFile = SD_MMC.open(currentRecordingFilename, FILE_WRITE);
+  if (!recordingFile) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Failed to create recording file\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Write MJPEG header
+  recordingFile.println("--" PART_BOUNDARY);
+
+  // Set recording state
+  isRecording = true;
+  recordingStartTime = millis();
+  recordingFrameCount = 0;
+
+  log_i("Recording started: %s", currentRecordingFilename);
+  snprintf(json_response, sizeof(json_response),
+           "{\"success\":true,\"filename\":\"%s\"}",
+           currentRecordingFilename);
+
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
+//  HANDLER: Stop Video Recording
+// ==================================================================
+static esp_err_t stop_recording_handler(httpd_req_t *req) {
+  char json_response[512];
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  if (!isRecording) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Not recording\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Close the file
+  recordingFile.close();
+
+  // Calculate duration
+  unsigned long duration = (millis() - recordingStartTime) / 1000;
+  unsigned long fileSize = 0;
+
+  // Get file size
+  File checkFile = SD_MMC.open(currentRecordingFilename, FILE_READ);
+  if (checkFile) {
+    fileSize = checkFile.size();
+    checkFile.close();
+  }
+
+  isRecording = false;
+
+  log_i("Recording stopped: %s (%lu bytes, %lu frames, %lu seconds)",
+        currentRecordingFilename, fileSize, recordingFrameCount, duration);
+
+  snprintf(json_response, sizeof(json_response),
+           "{\"success\":true,\"filename\":\"%s\",\"size\":%lu,\"frames\":%lu,\"duration\":%lu}",
+           currentRecordingFilename, fileSize, recordingFrameCount, duration);
+
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
+//  HANDLER: Get Recording Status
+// ==================================================================
+static esp_err_t recording_status_handler(httpd_req_t *req) {
+  char json_response[256];
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  if (isRecording) {
+    unsigned long duration = (millis() - recordingStartTime) / 1000;
+    snprintf(json_response, sizeof(json_response),
+             "{\"recording\":true,\"filename\":\"%s\",\"frames\":%lu,\"duration\":%lu}",
+             currentRecordingFilename, recordingFrameCount, duration);
+  } else {
+    snprintf(json_response, sizeof(json_response), "{\"recording\":false}");
+  }
+
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
 //  HANDLER: MJPEG Live Stream
 // ==================================================================
 static esp_err_t stream_handler(httpd_req_t *req) {
@@ -327,6 +474,18 @@ static esp_err_t stream_handler(httpd_req_t *req) {
     }
     if (res == ESP_OK) {
       res = httpd_resp_send_chunk(req, (const char *)_jpg_buf, _jpg_buf_len);
+    }
+
+    // If recording, save frame to SD card
+    if (isRecording && _jpg_buf && _jpg_buf_len > 0) {
+      recordingFile.println("Content-Type: image/jpeg");
+      recordingFile.print("Content-Length: ");
+      recordingFile.println(_jpg_buf_len);
+      recordingFile.println();
+      recordingFile.write(_jpg_buf, _jpg_buf_len);
+      recordingFile.println();
+      recordingFile.println("--" PART_BOUNDARY);
+      recordingFrameCount++;
     }
 
     if (fb) {
@@ -627,9 +786,35 @@ static esp_err_t system_stats_handler(httpd_req_t *req) {
   p += sprintf(p, "\"total_psram\":%u,", total_psram);
   
   if (total_psram > 0) {
-    p += sprintf(p, "\"psram_usage\":%.1f", 100.0 * (total_psram - free_psram) / total_psram);
+    p += sprintf(p, "\"psram_usage\":%.1f,", 100.0 * (total_psram - free_psram) / total_psram);
   } else {
-    p += sprintf(p, "\"psram_usage\":0.0");
+    p += sprintf(p, "\"psram_usage\":0.0,");
+  }
+  
+  // SD Card stats
+  p += sprintf(p, "\"sd_available\":%s,", sdCardAvailable ? "true" : "false");
+  if (sdCardAvailable) {
+    uint64_t sd_total = SD_MMC.totalBytes();
+    uint64_t sd_used = SD_MMC.usedBytes();
+    uint64_t sd_free = sd_total - sd_used;
+    float sd_percent = sd_total > 0 ? (sd_used * 100.0 / sd_total) : 0;
+    p += sprintf(p, "\"sd_total\":%llu,", sd_total);
+    p += sprintf(p, "\"sd_used\":%llu,", sd_used);
+    p += sprintf(p, "\"sd_free\":%llu,", sd_free);
+    p += sprintf(p, "\"sd_percent\":%.1f,", sd_percent);
+  } else {
+    p += sprintf(p, "\"sd_total\":0,");
+    p += sprintf(p, "\"sd_used\":0,");
+    p += sprintf(p, "\"sd_free\":0,");
+    p += sprintf(p, "\"sd_percent\":0,");
+  }
+  
+  // Recording status
+  p += sprintf(p, "\"recording\":%s", isRecording ? "true" : "false");
+  if (isRecording) {
+    unsigned long rec_duration = (millis() - recordingStartTime) / 1000;
+    p += sprintf(p, ",\"recording_duration\":%lu", rec_duration);
+    p += sprintf(p, ",\"recording_frames\":%lu", recordingFrameCount);
   }
   
   *p++ = '}';
@@ -850,6 +1035,47 @@ void startCameraServer() {
 #endif
   };
 
+  // ---- SD Card and Recording URIs ----
+  httpd_uri_t sd_info_uri = {
+    .uri = "/sd-info",
+    .method = HTTP_GET,
+    .handler = sd_info_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t start_recording_uri = {
+    .uri = "/start-recording",
+    .method = HTTP_GET,
+    .handler = start_recording_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t stop_recording_uri = {
+    .uri = "/stop-recording",
+    .method = HTTP_GET,
+    .handler = stop_recording_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t recording_status_uri = {
+    .uri = "/recording-status",
+    .method = HTTP_GET,
+    .handler = recording_status_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
   // ---- URI for the stream server (port 81) ----
   httpd_uri_t stream_uri = {
     .uri = "/stream",
@@ -879,6 +1105,11 @@ void startCameraServer() {
     httpd_register_uri_handler(camera_httpd, &wifi_connect_uri);
     httpd_register_uri_handler(camera_httpd, &wifi_status_uri);
     httpd_register_uri_handler(camera_httpd, &wifi_reset_uri);
+    // Recording and SD Info
+    httpd_register_uri_handler(camera_httpd, &sd_info_uri);
+    httpd_register_uri_handler(camera_httpd, &start_recording_uri);
+    httpd_register_uri_handler(camera_httpd, &stop_recording_uri);
+    httpd_register_uri_handler(camera_httpd, &recording_status_uri);
   }
 
   // Start stream HTTP server on port 81
