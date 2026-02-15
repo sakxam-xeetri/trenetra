@@ -209,17 +209,63 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .bg2{display:grid;gap:8px}.bg2.c2{grid-template-columns:1fr 1fr}
 
 /* Gallery Grid */
-.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:12px}
-.gal-item{position:relative;aspect-ratio:1;border-radius:var(--rs);overflow:hidden;background:var(--sf2);cursor:pointer;border:2px solid transparent;transition:.2s}
-.gal-item:hover{border-color:var(--ac);transform:scale(1.03)}
-.gal-img{width:100%;height:100%;object-fit:cover;display:block}
-.gal-type{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.56rem;padding:2px 6px;border-radius:10px;font-weight:600;text-transform:uppercase}
-.gal-sz{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.54rem;padding:2px 5px;border-radius:8px}
-.gal-del{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--er);display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:12px}
+.gal-item{position:relative;aspect-ratio:1;border-radius:var(--r);overflow:hidden;background:var(--sf2);cursor:pointer;border:2px solid transparent;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.gal-item:hover{border-color:var(--ac);transform:scale(1.02);box-shadow:0 4px 16px rgba(220,38,38,.3)}
+.gal-item:active{transform:scale(.98)}
+.gal-img{width:100%;height:100%;object-fit:cover;display:block;background:var(--sf3)}
+.gal-vid{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--ac),#b91c1c)}
+.gal-vid svg{width:36px;height:36px;fill:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+.gal-type{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.75);color:#fff;font-size:.58rem;padding:3px 8px;border-radius:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;backdrop-filter:blur(4px)}
+.gal-type.vid{background:var(--ac)}
+.gal-sz{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.75);color:#fff;font-size:.56rem;padding:3px 7px;border-radius:10px;backdrop-filter:blur(4px)}
+.gal-del{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:var(--er);display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;box-shadow:0 2px 8px rgba(239,68,68,.4)}
 .gal-item:hover .gal-del{opacity:1}
-.gal-del svg{width:12px;height:12px;fill:#fff}
-.gal-empty{text-align:center;padding:40px 20px;color:var(--tx3);font-size:.76rem}
-.gal-empty svg{width:48px;height:48px;fill:var(--tx3);margin-bottom:10px;opacity:.5}
+.gal-del:hover{transform:scale(1.1);background:#dc2626}
+.gal-del svg{width:14px;height:14px;fill:#fff}
+.gal-empty{text-align:center;padding:60px 20px;color:var(--tx3);font-size:.8rem}
+.gal-empty svg{width:64px;height:64px;fill:var(--tx3);margin-bottom:14px;opacity:.4}
+.gal-count{font-size:.7rem;color:var(--tx3);margin-bottom:12px;padding:8px 12px;background:var(--sf2);border-radius:var(--rs);display:flex;align-items:center;justify-content:space-between}
+.gal-count strong{color:var(--ac)}
+
+/* Gallery Storage Card */
+.gal-storage{display:flex;align-items:center;gap:12px;padding:12px;background:var(--sf2);border-radius:var(--r);margin-bottom:14px;border:1px solid var(--bd)}
+.gal-storage-icon{width:36px;height:36px;border-radius:var(--rs);background:var(--acd);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gal-storage-icon svg{width:20px;height:20px;fill:var(--ac)}
+.gal-storage-info{flex:1;min-width:0}
+.gal-storage-title{font-size:.72rem;font-weight:700;color:var(--tx)}
+.gal-storage-detail{font-size:.64rem;color:var(--tx3);margin-top:2px}
+.gal-storage-bar{width:80px;height:8px;background:var(--sf3);border-radius:4px;overflow:hidden;flex-shrink:0}
+.gal-storage-fill{height:100%;background:var(--ok);border-radius:4px;transition:width .3s,background .3s}
+.gal-storage-fill.warn{background:var(--wn)}
+.gal-storage-fill.crit{background:var(--er)}
+/* Mobile gallery - show delete always, smaller items */
+@media(max-width:640px){
+.gal-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.gal-del{opacity:1;width:24px;height:24px;top:4px;right:4px}
+.gal-del svg{width:12px;height:12px}
+.gal-type{font-size:.52rem;padding:2px 6px;top:4px;left:4px}
+.gal-sz{font-size:.5rem;padding:2px 5px;bottom:4px;right:4px}
+}
+
+/* Gallery Preview Lightbox */
+.gal-preview{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center}
+.gal-preview-bg{position:absolute;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px)}
+.gal-preview-wrap{position:relative;max-width:95%;max-height:90%;display:flex;flex-direction:column;align-items:center}
+.gal-preview-wrap img{max-width:100%;max-height:calc(90vh - 80px);object-fit:contain;border-radius:var(--r);box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.gal-preview-info{margin-top:16px;text-align:center}
+.gal-preview-info span{display:block;font-size:.78rem;color:var(--tx2);margin-bottom:12px}
+.gal-preview-btns{display:flex;gap:10px;justify-content:center}
+.gal-preview-btns .btn{min-width:100px}
+.gal-preview-x{position:fixed;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s}
+.gal-preview-x:hover{background:var(--er)}
+.gal-preview-x svg{width:24px;height:24px;fill:#fff}
+@media(max-width:640px){
+.gal-preview-wrap{max-width:100%;padding:10px}
+.gal-preview-btns{flex-direction:column;width:100%}
+.gal-preview-btns .btn{width:100%}
+.gal-preview-x{top:10px;right:10px;width:38px;height:38px}
+}
 
 /* ===== MODAL ===== */
 .mov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px}
@@ -245,23 +291,26 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 
 /* ===== MOBILE NAV ===== */
 .mnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(15,21,32,.96);backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.04);padding:4px 0 calc(4px + var(--safe-b))}
-.mnav-in{display:flex;justify-content:space-around}
-.mn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 10px;border-radius:var(--rs);font-size:.56rem;font-weight:600;color:var(--tx3);transition:.2s;letter-spacing:.3px}
-.mn svg{width:20px;height:20px;fill:currentColor}
+.mnav-in{display:flex;justify-content:space-around;max-width:400px;margin:0 auto}
+.mn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;border-radius:var(--rs);font-size:.52rem;font-weight:600;color:var(--tx3);transition:.2s;letter-spacing:.2px;min-width:0}
+.mn svg{width:18px;height:18px;fill:currentColor}
 .mn.active{color:var(--ac)}
+.mn:active{transform:scale(.92)}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:640px){
-:root{--bar:44px;--mnav:52px}
+:root{--bar:44px;--mnav:56px}
 .mnav{display:block}
 .bar{height:44px;padding:0 8px}
 .lt{font-size:.9rem}
 .bar-r .ib.desk{display:none}
-.drawer{top:44px;bottom:52px;width:100%}
-.cb{width:42px;height:42px}.cb svg{width:20px;height:20px}
-.cbar{height:56px;gap:8px;padding:0 14px;bottom:10px;border-radius:28px}
-.cb-sel{padding:8px 28px 8px 12px;font-size:.68rem}
+.drawer{top:44px;bottom:56px;width:100%}
+.cb{width:40px;height:40px}.cb svg{width:18px;height:18px}
+.cbar{height:54px;gap:6px;padding:0 12px;bottom:66px;border-radius:27px;max-width:calc(100% - 20px)}
+.cb-sel{padding:8px 26px 8px 10px;font-size:.65rem;min-width:70px}
+.cb-sep{height:24px;margin:0 4px}
 .sg{grid-template-columns:1fr 1fr}
+.hero{bottom:calc(var(--mnav) + 62px)}
 }
 @media(min-width:641px){.mnav{display:none}}
 </style>
@@ -400,6 +449,15 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <div class="drawer" id="drGal">
 <div class="dh"><h2><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg>Gallery</h2><button class="ib" onclick="closeDr('drGal')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
 <div class="db">
+<!-- SD Card Storage Info -->
+<div class="gal-storage" id="galStorage">
+<div class="gal-storage-icon"><svg viewBox="0 0 24 24"><path d="M18 2h-8L4.02 8 4 20a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2zm-6 6H8V4h4v4z"/></svg></div>
+<div class="gal-storage-info">
+<div class="gal-storage-title">SD Card</div>
+<div class="gal-storage-detail" id="galStorageDetail">Loading...</div>
+</div>
+<div class="gal-storage-bar"><div class="gal-storage-fill" id="galStorageFill"></div></div>
+</div>
 <div class="bg2 c2" style="margin-bottom:14px">
 <button class="btn btn-p" onclick="loadGallery()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button>
 <button class="btn btn-d" onclick="deleteAllFiles()"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete All</button>
@@ -717,7 +775,7 @@ var mi={drSet:1,drMon:2,drWifi:3,drGal:4};
 document.querySelectorAll('.mn').forEach(function(b,i){b.classList.toggle('active',i===(mi[id]||0))});
 if(id==='drMon')getStats();
 if(id==='drWifi')getWifiSt();
-if(id==='drGal')loadGallery();
+if(id==='drGal'){loadGallery();loadGalStorage();}
 }
 function closeDr(id){
 $(id).classList.remove('open');
@@ -871,32 +929,62 @@ if(d.sd_card){$('mSD').textContent='Available';$('mSDSize').textContent='Check m
 G.sInt=setInterval(function(){if(G.openDrId==='drMon')getStats()},3000);
 });
 
+/* ===== Gallery Storage Info ===== */
+function loadGalStorage(){
+var detail=$('galStorageDetail');
+var fill=$('galStorageFill');
+detail.textContent='Loading...';
+fill.style.width='0%';
+fill.className='gal-storage-fill';
+fetch(G.base+'/sd-info').then(function(r){return r.json()}).then(function(d){
+if(!d.available){
+detail.textContent='SD card not available';
+fill.style.width='0%';
+return;
+}
+var total=(d.total/(1024*1024*1024)).toFixed(1);
+var free=(d.free/(1024*1024*1024)).toFixed(2);
+var pct=d.percent.toFixed(0);
+detail.textContent=free+'GB free of '+total+'GB ('+pct+'% used)';
+fill.style.width=pct+'%';
+if(pct>90)fill.className='gal-storage-fill crit';
+else if(pct>75)fill.className='gal-storage-fill warn';
+else fill.className='gal-storage-fill';
+}).catch(function(){
+detail.textContent='Could not read SD card';
+fill.style.width='0%';
+});
+}
+
 /* ===== Gallery Functions ===== */
 function loadGallery(){
 var area=$('galArea');
-area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg><div>Loading...</div></div>';
+area.innerHTML='<div class="gal-empty"><div class="spin-ring"></div><div style="margin-top:16px">Loading files...</div></div>';
 fetch(G.base+'/list-files').then(function(r){return r.json()}).then(function(d){
 if(!d.success){
 area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>'+d.error+'</div></div>';
 return;
 }
-if(d.files.length===0){
-area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg><div>No photos or videos yet</div></div>';
+if(!d.files || d.files.length===0){
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg><div>No photos or videos yet</div><div style="margin-top:8px;font-size:.68rem;color:var(--tx3)">Take some photos or record videos to see them here</div></div>';
 return;
 }
-var html='<div class="gal-grid">';
+var photos=d.files.filter(function(f){return f.type==='photo'}).length;
+var videos=d.files.length-photos;
+var html='<div class="gal-count"><span><strong>'+d.files.length+'</strong> files</span><span>'+photos+' photos • '+videos+' videos</span></div>';
+html+='<div class="gal-grid">';
 d.files.forEach(function(f){
 var sz=(f.size/1024).toFixed(0)+'KB';
 if(f.size>1024*1024)sz=(f.size/(1024*1024)).toFixed(1)+'MB';
-var thumb=f.type==='photo'?G.base+'/download-file?name='+encodeURIComponent(f.name):'';
-var typeLabel=f.type==='photo'?'PHOTO':'VIDEO';
+var typeLabel=f.type==='photo'?'JPG':'VIDEO';
+var typeClass=f.type==='video'?' vid':'';
 html+='<div class="gal-item" onclick="viewFile(\''+f.name.replace(/'/g,'&#39;')+'\',\''+f.type+'\')">';
 if(f.type==='photo'){
-html+='<img class="gal-img" src="'+thumb+'" alt="'+f.name+'">';
+html+='<img class="gal-img" src="'+G.base+'/download-file?name='+encodeURIComponent(f.name)+'" alt="'+f.name+'" loading="lazy" onerror="this.style.display=\'none\'">';
 }else{
-html+='<div class="gal-img" style="background:linear-gradient(135deg,var(--ac),#b91c1c);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:#fff"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div>';
+html+='<div class="gal-vid"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>';
 }
-html+='<div class="gal-type">'+typeLabel+'</div>';
+html+='<div class="gal-type'+typeClass+'">'+typeLabel+'</div>';
 html+='<div class="gal-sz">'+sz+'</div>';
 html+='<button class="gal-del" onclick="event.stopPropagation();deleteFile(\''+f.name.replace(/'/g,'&#39;')+'\')" title="Delete"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>';
 html+='</div>';
@@ -904,15 +992,25 @@ html+='</div>';
 html+='</div>';
 area.innerHTML=html;
 }).catch(function(e){
-area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>Failed to load gallery</div></div>';
+console.error('Gallery error:',e);
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>Failed to load gallery</div><div style="margin-top:8px;font-size:.68rem">Check SD card connection</div></div>';
 });
 }
 
 function viewFile(name,type){
 if(type==='photo'){
-window.open(G.base+'/download-file?name='+encodeURIComponent(name),'_blank');
+// Show in lightbox modal
+var modal=document.createElement('div');
+modal.className='gal-preview';
+modal.innerHTML='<div class="gal-preview-bg" onclick="this.parentElement.remove()"></div><div class="gal-preview-wrap"><img src="'+G.base+'/download-file?name='+encodeURIComponent(name)+'" alt="'+name+'"><div class="gal-preview-info"><span>'+name+'</span><div class="gal-preview-btns"><a href="'+G.base+'/download-file?name='+encodeURIComponent(name)+'" download="'+name+'" class="btn btn-p"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download</a><button class="btn btn-d" onclick="this.closest(\'.gal-preview\').remove();deleteFile(\''+name.replace(/'/g,'&#39;')+'\')"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button></div></div><button class="gal-preview-x" onclick="this.parentElement.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>';
+document.body.appendChild(modal);
 }else{
-window.location.href=G.base+'/download-file?name='+encodeURIComponent(name);
+// Download video file
+var a=document.createElement('a');
+a.href=G.base+'/download-file?name='+encodeURIComponent(name);
+a.download=name;
+a.click();
+nfy('Downloading '+name,'ok');
 }
 }
 
