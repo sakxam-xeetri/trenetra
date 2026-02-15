@@ -443,6 +443,11 @@ static esp_err_t list_files_handler(httpd_req_t *req) {
     if (!file.isDirectory()) {
       String filename = String(file.name());
       
+      // Strip leading slash if present (SD_MMC returns full path like /filename.jpg)
+      if (filename.startsWith("/")) {
+        filename = filename.substring(1);
+      }
+      
       // Only include photos (.jpg) and videos (.mjpeg)
       if (filename.endsWith(".jpg") || filename.endsWith(".mjpeg") || 
           filename.endsWith(".JPG") || filename.endsWith(".MJPEG")) {
@@ -495,8 +500,24 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
     return ESP_FAIL;
   }
 
-  // Open file from SD card
-  String filepath = String("/") + String(filename);
+  // URL decode filename (handles %20 for spaces, etc.)
+  char decodedFilename[64] = {0};
+  int j = 0;
+  for (int i = 0; filename[i] && j < 63; i++) {
+    if (filename[i] == '%' && filename[i+1] && filename[i+2]) {
+      char hex[3] = {filename[i+1], filename[i+2], 0};
+      decodedFilename[j++] = (char)strtol(hex, NULL, 16);
+      i += 2;
+    } else {
+      decodedFilename[j++] = filename[i];
+    }
+  }
+  
+  // Build filepath - add leading slash if not present
+  String filepath = String(decodedFilename);
+  if (!filepath.startsWith("/")) {
+    filepath = "/" + filepath;
+  }
   File file = SD_MMC.open(filepath.c_str(), FILE_READ);
   
   if (!file) {
@@ -575,8 +596,24 @@ static esp_err_t delete_file_handler(httpd_req_t *req) {
     return httpd_resp_send(req, json_response, strlen(json_response));
   }
 
-  // Delete file
-  String filepath = String("/") + String(filename);
+  // URL decode filename
+  char decodedFilename[64] = {0};
+  int j = 0;
+  for (int i = 0; filename[i] && j < 63; i++) {
+    if (filename[i] == '%' && filename[i+1] && filename[i+2]) {
+      char hex[3] = {filename[i+1], filename[i+2], 0};
+      decodedFilename[j++] = (char)strtol(hex, NULL, 16);
+      i += 2;
+    } else {
+      decodedFilename[j++] = filename[i];
+    }
+  }
+  
+  // Build filepath - add leading slash if not present  
+  String filepath = String(decodedFilename);
+  if (!filepath.startsWith("/")) {
+    filepath = "/" + filepath;
+  }
   if (SD_MMC.remove(filepath.c_str())) {
     log_i("Deleted file: %s", filepath.c_str());
     snprintf(json_response, sizeof(json_response),
