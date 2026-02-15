@@ -355,7 +355,7 @@ void setup() {
   // ----- Start Web Server -----
   startCameraServer();
 
-  // ----- Setup OTA (Over-The-Air Updates) -----
+  // ----- Setup OTA (Over-The-Air Updates) -------
   ArduinoOTA.setHostname("trinetra");
   ArduinoOTA.setPassword("trinetra123");  // Change this password!
   
