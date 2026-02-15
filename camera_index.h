@@ -1005,38 +1005,45 @@ area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a1
 function downloadFile(name){
 var dlUrl=G.base+'/download-file?name='+encodeURIComponent(name)+'&dl=1';
 nfy('Downloading '+name+'...','wn');
-var xhr=new XMLHttpRequest();
-xhr.open('GET',dlUrl,true);
-xhr.responseType='blob';
-xhr.onload=function(){
-if(xhr.status===200){
-var blob=xhr.response;
+// Use direct link approach - more reliable for large video files
 var a=document.createElement('a');
-a.href=URL.createObjectURL(blob);
+a.href=dlUrl;
 a.download=name;
+a.style.display='none';
 document.body.appendChild(a);
 a.click();
-setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},100);
-nfy('Downloaded '+name,'ok');
-}else{nfy('Download failed ('+xhr.status+')','er');}
-};
-xhr.onerror=function(){nfy('Download failed','er');};
-xhr.send();
+setTimeout(function(){document.body.removeChild(a);nfy('Download started: '+name,'ok')},500);
 }
 
 function viewFile(name,type){
 var url=G.base+'/download-file?name='+encodeURIComponent(name);
+var dlUrl=url+'&dl=1';
 console.log('Viewing file:',name,'type:',type,'url:',url);
-if(type==='photo'){
-// Show in lightbox modal
 var eName=name.replace(/'/g,'&#39;');
+if(type==='photo'){
+// Show photo in lightbox modal
 var modal=document.createElement('div');
 modal.className='gal-preview';
 modal.innerHTML='<div class="gal-preview-bg" onclick="this.parentElement.remove()"></div><div class="gal-preview-wrap"><div class="gal-preview-loading"><div class="spin-ring"></div></div><img src="'+url+'" alt="'+name+'" onload="this.previousElementSibling.style.display=\'none\'" onerror="this.previousElementSibling.innerHTML=\'Failed to load image\';this.style.display=\'none\'"><div class="gal-preview-info"><span>'+name+'</span><div class="gal-preview-btns"><button class="btn btn-p" onclick="downloadFile(\''+eName+'\')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download</button><button class="btn btn-s" onclick="window.open(\''+url+'\',\'_blank\')"><svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>Open Tab</button><button class="btn btn-d" onclick="this.closest(\'.gal-preview\').remove();deleteFile(\''+eName+'\')"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button></div></div><button class="gal-preview-x" onclick="this.parentElement.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>';
 document.body.appendChild(modal);
 }else{
-// Download video file directly
-downloadFile(name);
+// Show video preview modal with download option
+var modal=document.createElement('div');
+modal.className='gal-preview';
+modal.innerHTML='<div class="gal-preview-bg" onclick="this.parentElement.remove()"></div>'
++'<div class="gal-preview-wrap">'
++'<div style="width:280px;max-width:90%;background:var(--sf);border-radius:var(--rl);padding:32px 24px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.5);border:1px solid var(--bd)">'
++'<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--ac),#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:#fff;margin-left:4px"><path d="M8 5v14l11-7z"/></svg></div>'
++'<div style="font-size:.9rem;font-weight:600;margin-bottom:4px;color:var(--tx);word-break:break-all">'+name+'</div>'
++'<div style="font-size:.7rem;color:var(--tx3);margin-bottom:20px">MJPEG Video • Open with VLC or media player</div>'
++'<div style="display:flex;flex-direction:column;gap:8px">'
++'<button class="btn btn-p" onclick="downloadFile(\''+eName+'\');this.closest(\'.gal-preview\').remove()" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download Video</button>'
++'<button class="btn btn-d" onclick="this.closest(\'.gal-preview\').remove();deleteFile(\''+eName+'\')" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>'
++'</div>'
++'</div>'
++'<button class="gal-preview-x" onclick="this.parentElement.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>'
++'</div>';
+document.body.appendChild(modal);
 }
 }
 
