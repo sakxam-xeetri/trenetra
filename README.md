@@ -3,10 +3,10 @@
 # 🔴 TRINETRA
 ### Professional ESP32-CAM Surveillance System
 
-![Version](https://img.shields.io/badge/version-3.0-dc2626?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-3.1-dc2626?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/ESP32--CAM-AI--Thinker-0f172a?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)
-![UI](https://img.shields.io/badge/UI-Immersive_v3.0-dc2626?style=for-the-badge)
+![UI](https://img.shields.io/badge/UI-Immersive_v3.1-dc2626?style=for-the-badge)
 
 **Enterprise-grade surveillance solution with immersive stream-first web interface**
 
@@ -44,13 +44,16 @@
 
 ## ✨ Key Features
 
-### 🎥 Video Streaming
+### 🎥 Video Streaming & Recording
 - **Real-time MJPEG streaming** on dedicated port (81) with sub-100ms latency
 - **Immersive full-viewport display** with curved edges (20px radius)
 - **Dynamic resolution switching** (QQVGA → SXGA) with instant reload
 - **PSRAM-optimized dual frame buffer** for buttery-smooth playback
 - **Adjustable JPEG quality** (4-63) with real-time compression control
 - **Live FPS monitoring** with total frame counter
+- **🆕 Video recording to SD card** with MJPEG format (`video_00001.mjpeg`)
+- **🆕 Live recording indicator** with frame counter and duration timer
+- **🆕 Simultaneous streaming & recording** without interruption
 
 ### 📸 Photo Capture
 - **Instant browser download** with shutter flash animation
@@ -58,6 +61,13 @@
 - **Visual feedback system**: Green glow (success) / Red glow (error)
 - **Graceful degradation**: Works without SD card
 - **Flash LED control** with animated glow effect
+
+### 💾 SD Card Management
+- **🆕 Real-time storage monitoring** (total, used, free space in GB)
+- **🆕 Usage percentage display** with color-coded progress bar
+- **🆕 Visual warnings** when storage is nearly full (>75% yellow, >90% red)
+- **🆕 Automatic space calculation** refreshed every 3 seconds
+- **Supports FAT32 formatted cards** (Class 10 recommended)
 
 ### 🎨 Professional Web Interface v3.0
 
@@ -93,8 +103,9 @@
   - Connected clients counter
   - Heap memory (free MB, usage %)
   - PSRAM (free MB, usage %)
-  - SD card availability
+  - **🆕 SD card details** (free space, total capacity, usage % with progress bar)
 - **Auto-refresh**: 3-second interval when drawer open
+- **🆕 Storage warnings**: Visual alerts when SD card is >75% full
 
 ### 📡 Advanced WiFi Manager
 
@@ -264,11 +275,14 @@ Connect USB-to-Serial adapter to ESP32-CAM:
 | Button | Icon | Function | Shortcut |
 |--------|------|----------|----------|
 | **Play/Stop** | ▶️ / ⏹️ | Start/stop live stream | `Space` |
+| **🆕 Record** | 🔴 / ⏹️ | Start/stop video recording | - |
 | **Capture** | 📷 | Take photo & download | - |
 | **Save SD** | 💾 | Capture to SD card | - |
 | **LED** | 💡 | Toggle flash LED | - |
 | **Resolution** | Dropdown | QQVGA → SXGA | - |
 | **Fullscreen** | ⛶ | Immersive mode | `F` |
+
+**Note**: Recording button appears only when stream is active
 
 ---
 
@@ -290,6 +304,10 @@ Connect USB-to-Serial adapter to ESP32-CAM:
 | `/wifi-connect` | GET | JSON | Connect to WiFi |
 | `/wifi-status` | GET | JSON | Connection status |
 | `/wifi-reset` | GET | JSON | Clear credentials |
+| **🆕 `/start-recording`** | GET | JSON | Start video recording |
+| **🆕 `/stop-recording`** | GET | JSON | Stop recording & get stats |
+| **🆕 `/recording-status`** | GET | JSON | Current recording state |
+| **🆕 `/sd-info`** | GET | JSON | SD card space information |
 
 ### Example API Calls
 
@@ -305,6 +323,15 @@ curl "http://1.2.3.4/system-stats"
 
 # Toggle LED
 curl "http://1.2.3.4/led?state=1"
+
+# Start video recording
+curl "http://1.2.3.4/start-recording"
+
+# Stop recording and get file info
+curl "http://1.2.3.4/stop-recording"
+
+# Get SD card information
+curl "http://1.2.3.4/sd-info"
 ```
 
 ---
@@ -340,6 +367,34 @@ curl "http://1.2.3.4/led?state=1"
 - ✅ Reduce resolution to QVGA
 - ✅ Move closer to WiFi AP
 - ✅ Check camera lens cover removed
+
+### 🆕 SD Card & Recording Issues
+
+**❌ SD card not detected**
+
+**Solutions**:
+- ✅ Format as FAT32 (not exFAT or NTFS)
+- ✅ Use 32GB or smaller card (better compatibility)
+- ✅ Check card is fully inserted
+- ✅ Try different microSD card (some brands incompatible)
+- ✅ Check Serial Monitor for SD initialization errors
+
+**❌ Recording won't start**
+
+**Solutions**:
+- ✅ Start streaming first (recording requires active stream)
+- ✅ Ensure SD card has sufficient free space
+- ✅ Check SD card isn't write-protected
+- ✅ Verify SD card is mounted (check Monitor drawer)
+- ✅ Format card and try again
+
+**❌ Recording files won't play**
+
+**Solutions**:
+- ✅ Use VLC Media Player (best MJPEG support)
+- ✅ Try converting to MP4: `ffmpeg -i video_00001.mjpeg -c:v libx264 output.mp4`
+- ✅ Ensure recording wasn't interrupted while saving
+- ✅ Check file size is > 0 bytes
 
 ---
 
@@ -442,6 +497,39 @@ MIT License - Copyright (c) 2026 Trinetra Project
 ---
 
 ## 📊 Changelog
+
+### v3.1 — Video Recording & SD Card Management (February 2026)
+
+**🎥 Video Recording**
+- Record video to SD card in MJPEG format
+- Start/stop recording button in control bar
+- Live recording indicator badge with timer
+- Simultaneous streaming and recording
+- Auto-increment file naming (`video_00001.mjpeg`)
+- Frame counter during recording
+- Recording statistics on stop (size, frames, duration)
+
+**💾 SD Card Monitoring**
+- Real-time storage information display
+- Free space and total capacity (GB)
+- Usage percentage with progress bar
+- Color-coded warnings (green → yellow → red)
+- Auto-refresh every 3 seconds
+- SD card availability status
+- Maximum space utilization alerts
+
+**🔌 API Enhancements**
+- `/start-recording` - Begin video capture
+- `/stop-recording` - End recording & get stats
+- `/recording-status` - Current recording state
+- `/sd-info` - Storage space details
+- Enhanced `/system-stats` with SD & recording data
+
+**🐛 Improvements**
+- Automatic recording stop when stream ends
+- Graceful error handling for SD card issues
+- Better notification messages for recording events
+- Recording state persistence across operations
 
 ### v3.0 — Immersive Stream-First UI (February 2026)
 
