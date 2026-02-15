@@ -553,10 +553,22 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
   httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET");
   httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store");
   
+  // Check if download mode is requested via ?dl=1
+  char dlParam[4] = {0};
+  bool forceDownload = false;
+  if (httpd_query_key_value(query, "dl", dlParam, sizeof(dlParam)) == ESP_OK) {
+    forceDownload = (strcmp(dlParam, "1") == 0);
+  }
+  
   // Extract display filename (without leading slash)
   String dispName = filepath;
   if (dispName.startsWith("/")) dispName = dispName.substring(1);
-  String contentDisp = "inline; filename=\"" + dispName + "\"";
+  String contentDisp;
+  if (forceDownload) {
+    contentDisp = "attachment; filename=\"" + dispName + "\"";
+  } else {
+    contentDisp = "inline; filename=\"" + dispName + "\"";
+  }
   httpd_resp_set_hdr(req, "Content-Disposition", contentDisp.c_str());
 
   // Stream file in chunks using chunked transfer
@@ -1158,7 +1170,7 @@ static esp_err_t wifi_reset_handler(httpd_req_t *req) {
 // ==================================================================
 void startCameraServer() {
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-  config.max_uri_handlers = 16;
+  config.max_uri_handlers = 20;
 
   // ---- URI definitions for the main HTTP server (port 80) ----
   httpd_uri_t index_uri = {
