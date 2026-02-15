@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🔴 TRINETRA
-### Professional ESP32-CAM Surveillance System
+### ESP32-CAM Surveillance System
 
 ![Version](https://img.shields.io/badge/version-3.1-dc2626?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/ESP32--CAM-AI--Thinker-0f172a?style=for-the-badge)
