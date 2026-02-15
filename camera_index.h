@@ -208,6 +208,19 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .bg2{display:grid;gap:8px}.bg2.c2{grid-template-columns:1fr 1fr}
 
+/* Gallery Grid */
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+.gal-item{position:relative;aspect-ratio:1;border-radius:var(--rs);overflow:hidden;background:var(--sf2);cursor:pointer;border:2px solid transparent;transition:.2s}
+.gal-item:hover{border-color:var(--ac);transform:scale(1.03)}
+.gal-img{width:100%;height:100%;object-fit:cover;display:block}
+.gal-type{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.56rem;padding:2px 6px;border-radius:10px;font-weight:600;text-transform:uppercase}
+.gal-sz{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;font-size:.54rem;padding:2px 5px;border-radius:8px}
+.gal-del{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--er);display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s}
+.gal-item:hover .gal-del{opacity:1}
+.gal-del svg{width:12px;height:12px;fill:#fff}
+.gal-empty{text-align:center;padding:40px 20px;color:var(--tx3);font-size:.76rem}
+.gal-empty svg{width:48px;height:48px;fill:var(--tx3);margin-bottom:10px;opacity:.5}
+
 /* ===== MODAL ===== */
 .mov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px}
 .mov.show{display:flex}
@@ -266,6 +279,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <button class="ib desk" onclick="openDr('drSet')" title="Settings" aria-label="Settings" id="ibSet"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/></svg></button>
 <button class="ib desk" onclick="openDr('drMon')" title="Monitor" aria-label="Monitor" id="ibMon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v11a2 2 0 002 2h3l-1 1v2h10v-2l-1-1h3a2 2 0 002-2V5a2 2 0 00-2-2zm0 13H5V5h14v11z"/></svg></button>
 <button class="ib desk" onclick="openDr('drWifi')" title="WiFi" aria-label="WiFi" id="ibWifi"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></button>
+<button class="ib desk" onclick="openDr('drGal')" title="Gallery" aria-label="Gallery" id="ibGal"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg></button>
 <button class="ib" onclick="openAbout()" title="About" aria-label="About"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button>
 </div>
 </header>
@@ -382,6 +396,23 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 </div>
 </div>
 
+<!-- =============== GALLERY DRAWER =============== -->
+<div class="drawer" id="drGal">
+<div class="dh"><h2><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg>Gallery</h2><button class="ib" onclick="closeDr('drGal')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+<div class="db">
+<div class="bg2 c2" style="margin-bottom:14px">
+<button class="btn btn-p" onclick="loadGallery()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button>
+<button class="btn btn-d" onclick="deleteAllFiles()"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete All</button>
+</div>
+<div id="galArea" style="min-height:200px">
+<div class="gal-empty">
+<svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg>
+<div>Loading gallery...</div>
+</div>
+</div>
+</div>
+</div>
+
 <!-- =============== DRAWER BACKDROP =============== -->
 <div class="backdrop" id="bk" onclick="closeAll()"></div>
 
@@ -425,6 +456,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <button class="mn" onclick="openDr('drSet')" id="mn1"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/></svg>Settings</button>
 <button class="mn" onclick="openDr('drMon')" id="mn2"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v11a2 2 0 002 2h3l-1 1v2h10v-2l-1-1h3a2 2 0 002-2V5a2 2 0 00-2-2zm0 13H5V5h14v11z"/></svg>Monitor</button>
 <button class="mn" onclick="openDr('drWifi')" id="mn3"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>WiFi</button>
+<button class="mn" onclick="openDr('drGal')" id="mn4"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg>Gallery</button>
 </div>
 </nav>
 
@@ -678,13 +710,14 @@ $(id).classList.add('open');
 $('bk').classList.add('show');
 G.openDrId=id;
 /* highlight appbar icons */
-var map={drSet:'ibSet',drMon:'ibMon',drWifi:'ibWifi'};
+var map={drSet:'ibSet',drMon:'ibMon',drWifi:'ibWifi',drGal:'ibGal'};
 if(map[id]&&$(map[id]))$(map[id]).classList.add('active');
 /* mobile nav highlight */
-var mi={drSet:1,drMon:2,drWifi:3};
+var mi={drSet:1,drMon:2,drWifi:3,drGal:4};
 document.querySelectorAll('.mn').forEach(function(b,i){b.classList.toggle('active',i===(mi[id]||0))});
 if(id==='drMon')getStats();
 if(id==='drWifi')getWifiSt();
+if(id==='drGal')loadGallery();
 }
 function closeDr(id){
 $(id).classList.remove('open');
@@ -837,6 +870,85 @@ if(d.sd_card){$('mSD').textContent='Available';$('mSDSize').textContent='Check m
 
 G.sInt=setInterval(function(){if(G.openDrId==='drMon')getStats()},3000);
 });
+
+/* ===== Gallery Functions ===== */
+function loadGallery(){
+var area=$('galArea');
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg><div>Loading...</div></div>';
+fetch(G.base+'/list-files').then(function(r){return r.json()}).then(function(d){
+if(!d.success){
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>'+d.error+'</div></div>';
+return;
+}
+if(d.files.length===0){
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg><div>No photos or videos yet</div></div>';
+return;
+}
+var html='<div class="gal-grid">';
+d.files.forEach(function(f){
+var sz=(f.size/1024).toFixed(0)+'KB';
+if(f.size>1024*1024)sz=(f.size/(1024*1024)).toFixed(1)+'MB';
+var thumb=f.type==='photo'?G.base+'/download-file?name='+encodeURIComponent(f.name):'';
+var typeLabel=f.type==='photo'?'PHOTO':'VIDEO';
+html+='<div class="gal-item" onclick="viewFile(\''+f.name.replace(/'/g,'&#39;')+'\',\''+f.type+'\')">';
+if(f.type==='photo'){
+html+='<img class="gal-img" src="'+thumb+'" alt="'+f.name+'">';
+}else{
+html+='<div class="gal-img" style="background:linear-gradient(135deg,var(--ac),#b91c1c);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:#fff"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div>';
+}
+html+='<div class="gal-type">'+typeLabel+'</div>';
+html+='<div class="gal-sz">'+sz+'</div>';
+html+='<button class="gal-del" onclick="event.stopPropagation();deleteFile(\''+f.name.replace(/'/g,'&#39;')+'\')" title="Delete"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>';
+html+='</div>';
+});
+html+='</div>';
+area.innerHTML=html;
+}).catch(function(e){
+area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg><div>Failed to load gallery</div></div>';
+});
+}
+
+function viewFile(name,type){
+if(type==='photo'){
+window.open(G.base+'/download-file?name='+encodeURIComponent(name),'_blank');
+}else{
+window.location.href=G.base+'/download-file?name='+encodeURIComponent(name);
+}
+}
+
+function deleteFile(name){
+if(!confirm('Delete '+name+'?'))return;
+fetch(G.base+'/delete-file?name='+encodeURIComponent(name)).then(function(r){return r.json()}).then(function(d){
+if(d.success){
+nfy('File deleted','ok');
+loadGallery();
+}else{
+nfy(d.error||'Delete failed','er');
+}
+}).catch(function(){nfy('Delete failed','er')});
+}
+
+function deleteAllFiles(){
+if(!confirm('Delete ALL photos and videos? This cannot be undone!'))return;
+fetch(G.base+'/list-files').then(function(r){return r.json()}).then(function(d){
+if(!d.success||d.files.length===0){
+nfy('No files to delete','wn');
+return;
+}
+var count=0;
+var total=d.files.length;
+d.files.forEach(function(f){
+fetch(G.base+'/delete-file?name='+encodeURIComponent(f.name)).then(function(){
+count++;
+if(count===total){
+nfy('Deleted '+total+' files','ok');
+loadGallery();
+}
+});
+});
+}).catch(function(){nfy('Failed to delete files','er')});
+}
+
 </script>
 </body>
 </html>
