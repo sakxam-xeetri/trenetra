@@ -67,6 +67,9 @@
 - **🆕 Usage percentage display** with color-coded progress bar
 - **🆕 Visual warnings** when storage is nearly full (>75% yellow, >90% red)
 - **🆕 Automatic space calculation** refreshed every 3 seconds
+- **🆕 Gallery browser** (view all saved photos and videos from web interface)
+- **🆕 File preview & download** (click to view photos or download videos)
+- **🆕 Delete files** (individual or bulk deletion from gallery)
 - **Supports FAT32 formatted cards** (Class 10 recommended)
 
 ### 🎨 Professional Web Interface v3.0
@@ -82,7 +85,7 @@
 #### Layout & Navigation
 - **Stream-first hero layout**: Video fills 100% viewport height
 - **Floating control bar**: Positioned at bottom with rounded dock design (32px radius)
-- **Slide-in drawers**: Settings, Monitor, WiFi (transform-based smooth transitions)
+- **Slide-in drawers**: Settings, Monitor, WiFi, Gallery (transform-based smooth transitions)
 - **Dual navigation**: Desktop appbar icons + Mobile bottom nav
 - **Responsive breakpoints**: Mobile (<640px), Tablet, Desktop
 
@@ -308,6 +311,9 @@ Connect USB-to-Serial adapter to ESP32-CAM:
 | **🆕 `/stop-recording`** | GET | JSON | Stop recording & get stats |
 | **🆕 `/recording-status`** | GET | JSON | Current recording state |
 | **🆕 `/sd-info`** | GET | JSON | SD card space information |
+| **🆕 `/list-files`** | GET | JSON | List all photos and videos |
+| **🆕 `/download-file`** | GET | File | Download/view specific file |
+| **🆕 `/delete-file`** | GET | JSON | Delete a file from SD card |
 
 ### Example API Calls
 
@@ -332,6 +338,15 @@ curl "http://1.2.3.4/stop-recording"
 
 # Get SD card information
 curl "http://1.2.3.4/sd-info"
+
+# List all saved files
+curl "http://1.2.3.4/list-files"
+
+# Download a specific file
+curl "http://1.2.3.4/download-file?name=trinetra_00001.jpg" --output photo.jpg
+
+# Delete a file
+curl "http://1.2.3.4/delete-file?name=video_00001.mjpeg"
 ```
 
 ---
@@ -517,12 +532,18 @@ MIT License - Copyright (c) 2026 Trinetra Project
 - Auto-refresh every 3 seconds
 - SD card availability status
 - Maximum space utilization alerts
+- **Gallery browser** with thumbnail grid view
+- View and download saved photos and videos
+- Individual and bulk file deletion
 
 **🔌 API Enhancements**
 - `/start-recording` - Begin video capture
 - `/stop-recording` - End recording & get stats
 - `/recording-status` - Current recording state
 - `/sd-info` - Storage space details
+- `/list-files` - Browse all saved media
+- `/download-file` - Retrieve specific file
+- `/delete-file` - Remove file from SD card
 - Enhanced `/system-stats` with SD & recording data
 
 **🐛 Improvements**
