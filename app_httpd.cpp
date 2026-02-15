@@ -418,6 +418,179 @@ static esp_err_t recording_status_handler(httpd_req_t *req) {
 }
 
 // ==================================================================
+//  HANDLER: List all files on SD card
+// ==================================================================
+static esp_err_t list_files_handler(httpd_req_t *req) {
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  if (!sdCardAvailable) {
+    return httpd_resp_send(req, "{\"success\":false,\"error\":\"SD card not available\"}", HTTPD_RESP_USE_STRLEN);
+  }
+
+  // Start JSON array
+  String json = "{\"success\":true,\"files\":[";
+  
+  File root = SD_MMC.open("/");
+  if (!root) {
+    return httpd_resp_send(req, "{\"success\":false,\"error\":\"Failed to open root directory\"}", HTTPD_RESP_USE_STRLEN);
+  }
+
+  bool firstFile = true;
+  File file = root.openNextFile();
+  
+  while (file) {
+    if (!file.isDirectory()) {
+      String filename = String(file.name());
+      
+      // Only include photos (.jpg) and videos (.mjpeg)
+      if (filename.endsWith(".jpg") || filename.endsWith(".mjpeg") || 
+          filename.endsWith(".JPG") || filename.endsWith(".MJPEG")) {
+        
+        if (!firstFile) json += ",";
+        firstFile = false;
+        
+        json += "{";
+        json += "\"name\":\"" + filename + "\",";
+        json += "\"size\":" + String(file.size()) + ",";
+        
+        // Determine type
+        if (filename.endsWith(".jpg") || filename.endsWith(".JPG")) {
+          json += "\"type\":\"photo\"";
+        } else {
+          json += "\"type\":\"video\"";
+        }
+        
+        json += "}";
+      }
+    }
+    file = root.openNextFile();
+  }
+  
+  json += "]}";
+  root.close();
+  
+  return httpd_resp_send(req, json.c_str(), json.length());
+}
+
+// ==================================================================
+//  HANDLER: Download/view a specific file
+// ==================================================================
+static esp_err_t download_file_handler(httpd_req_t *req) {
+  if (!sdCardAvailable) {
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+
+  // Parse query string to get filename
+  char query[128];
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+
+  char filename[64] = {0};
+  if (httpd_query_key_value(query, "name", filename, sizeof(filename)) != ESP_OK) {
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+
+  // Open file from SD card
+  String filepath = String("/") + String(filename);
+  File file = SD_MMC.open(filepath.c_str(), FILE_READ);
+  
+  if (!file) {
+    log_e("Failed to open file: %s", filepath.c_str());
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+
+  // Set content type based on file extension
+  String fname = String(filename);
+  if (fname.endsWith(".jpg") || fname.endsWith(".JPG")) {
+    httpd_resp_set_type(req, "image/jpeg");
+  } else if (fname.endsWith(".mjpeg") || fname.endsWith(".MJPEG")) {
+    httpd_resp_set_type(req, "video/x-motion-jpeg");
+  } else {
+    httpd_resp_set_type(req, "application/octet-stream");
+  }
+
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  httpd_resp_set_hdr(req, "Content-Disposition", ("inline; filename=" + fname).c_str());
+
+  // Stream file in chunks
+  const size_t chunkSize = 4096;
+  uint8_t *buffer = (uint8_t *)malloc(chunkSize);
+  
+  if (!buffer) {
+    file.close();
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
+  }
+
+  esp_err_t res = ESP_OK;
+  size_t bytesRead;
+  
+  while ((bytesRead = file.read(buffer, chunkSize)) > 0) {
+    if (httpd_resp_send_chunk(req, (const char *)buffer, bytesRead) != ESP_OK) {
+      res = ESP_FAIL;
+      break;
+    }
+  }
+  
+  httpd_resp_send_chunk(req, NULL, 0); // End chunked response
+  
+  free(buffer);
+  file.close();
+  
+  return res;
+}
+
+// ==================================================================
+//  HANDLER: Delete a file from SD card
+// ==================================================================
+static esp_err_t delete_file_handler(httpd_req_t *req) {
+  char json_response[256];
+  httpd_resp_set_type(req, "application/json");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+
+  if (!sdCardAvailable) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"SD card not available\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Parse query string to get filename
+  char query[128];
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Missing filename parameter\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  char filename[64] = {0};
+  if (httpd_query_key_value(query, "name", filename, sizeof(filename)) != ESP_OK) {
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Invalid filename parameter\"}");
+    return httpd_resp_send(req, json_response, strlen(json_response));
+  }
+
+  // Delete file
+  String filepath = String("/") + String(filename);
+  if (SD_MMC.remove(filepath.c_str())) {
+    log_i("Deleted file: %s", filepath.c_str());
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":true,\"filename\":\"%s\"}", filename);
+  } else {
+    log_e("Failed to delete file: %s", filepath.c_str());
+    snprintf(json_response, sizeof(json_response),
+             "{\"success\":false,\"error\":\"Failed to delete file\"}");
+  }
+
+  return httpd_resp_send(req, json_response, strlen(json_response));
+}
+
+// ==================================================================
 //  HANDLER: MJPEG Live Stream
 // ==================================================================
 static esp_err_t stream_handler(httpd_req_t *req) {
@@ -1076,6 +1249,36 @@ void startCameraServer() {
 #endif
   };
 
+  httpd_uri_t list_files_uri = {
+    .uri = "/list-files",
+    .method = HTTP_GET,
+    .handler = list_files_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t download_file_uri = {
+    .uri = "/download-file",
+    .method = HTTP_GET,
+    .handler = download_file_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
+  httpd_uri_t delete_file_uri = {
+    .uri = "/delete-file",
+    .method = HTTP_GET,
+    .handler = delete_file_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
   // ---- URI for the stream server (port 81) ----
   httpd_uri_t stream_uri = {
     .uri = "/stream",
@@ -1110,6 +1313,10 @@ void startCameraServer() {
     httpd_register_uri_handler(camera_httpd, &start_recording_uri);
     httpd_register_uri_handler(camera_httpd, &stop_recording_uri);
     httpd_register_uri_handler(camera_httpd, &recording_status_uri);
+    // File Browser (Gallery)
+    httpd_register_uri_handler(camera_httpd, &list_files_uri);
+    httpd_register_uri_handler(camera_httpd, &download_file_uri);
+    httpd_register_uri_handler(camera_httpd, &delete_file_uri);
   }
 
   // Start stream HTTP server on port 81
