@@ -78,6 +78,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .bg{font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:14px;letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
 .bg svg{width:8px;height:8px;fill:currentColor}
 .bg-live{background:var(--er);color:#fff}
+.bg-rec{background:var(--ac);color:#fff;animation:recPulse 1.5s ease-in-out infinite}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.7}}
 .bg-res{background:rgba(255,255,255,.1);color:#ccc;backdrop-filter:blur(4px)}
 .timer{font-variant-numeric:tabular-nums;margin-left:2px;font-weight:600}
 
@@ -275,7 +277,10 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <div class="ph-in"><div class="ph-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><span class="ph-txt">Tap to start stream</span></div>
 </div>
 <div class="hud" id="hud">
+<div style="display:flex;gap:8px">
 <span class="bg bg-live"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>LIVE <span class="timer" id="timer">00:00</span></span>
+<span class="bg bg-rec" id="recBadge" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>REC <span class="timer" id="recTimer">00:00</span></span>
+</div>
 <span class="bg bg-res" id="resLbl">QVGA</span>
 </div>
 <div class="shutter" id="shutter"></div>
@@ -285,6 +290,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <!-- Control bar -->
 <div class="cbar">
 <button class="cb cb-play" id="btnPS" onclick="toggleStream()" title="Start Stream"><svg viewBox="0 0 24 24" id="icoPS"><path d="M8 5v14l11-7z"/></svg></button>
+<button class="cb cb-def" id="btnRec" onclick="toggleRecording()" title="Start Recording" style="display:none"><svg viewBox="0 0 24 24" id="icoRec"><circle cx="12" cy="12" r="8"/></svg></button>
 <button class="cb cb-def" id="btnCap" onclick="capturePhoto()" title="Capture Photo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M9 2L7.17 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2h-3.17L15 2H9zm3 15a5 5 0 110-10 5 5 0 010 10z"/></svg></button>
 <button class="cb cb-def" id="btnSave" onclick="saveToSD()" title="Save to SD Card"><svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg></button>
 <button class="cb cb-def" id="btnLED" onclick="toggleLED()" title="Flash LED"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zm2 11h-1v2h-2v-2H9v-2h2V9h2v2h2v2zm-2 6h-2v1h2v-1zm0 2h-2c0 .55.45 1 1 1s1-.45 1-1z"/></svg></button>
@@ -339,7 +345,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <div class="sc"><div class="sc-h"><svg viewBox="0 0 24 24"><path d="M16 11a3 3 0 100-6 3 3 0 000 6zm-8 0a3 3 0 100-6 3 3 0 000 6zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0l-.97.05A4.22 4.22 0 0117 16.5V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="sc-l">Clients</span></div><div class="sc-v" id="mCli">--</div></div>
 <div class="sc"><div class="sc-h"><svg viewBox="0 0 24 24"><path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/></svg><span class="sc-l">Heap</span></div><div class="sc-v" id="mHeap">--</div><div class="prg"><div class="prg-b" id="pHeap" style="width:0"></div></div></div>
 <div class="sc"><div class="sc-h"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v2z"/></svg><span class="sc-l">PSRAM</span></div><div class="sc-v" id="mPSRAM">--</div><div class="prg"><div class="prg-b" id="pPSRAM" style="width:0"></div></div></div>
-<div class="sc"><div class="sc-h"><svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg><span class="sc-l">SD Card</span></div><div class="sc-v" id="mSD">--</div></div>
+<div class="sc"><div class="sc-h"><svg viewBox="0 0 24 24"><path d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4zm-5 16a3 3 0 110-6 3 3 0 010 6zm3-10H5V5h10v4z"/></svg><span class="sc-l">SD Card</span></div><div class="sc-v" id="mSD">--</div><div class="sc-s" id="mSDSize">--</div><div class="prg"><div class="prg-b" id="pSD" style="width:0"></div></div></div>
 </div>
 <div style="text-align:center;margin-top:12px"><button class="btn btn-s" onclick="getStats()"><svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4a8 8 0 107.73 10h-2.08A6 6 0 1112 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>Refresh</button></div>
 </div>
@@ -425,11 +431,12 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <script>
 /* ===== State ===== */
 var G={
-streaming:false,ledOn:false,
+streaming:false,ledOn:false,recording:false,
 base:location.origin,
 sUrl:location.protocol+'//'+location.hostname+':81/stream',
 resN:{'3':'QQVGA','5':'QVGA','8':'VGA','9':'SVGA','10':'XGA','12':'SXGA'},
-tStart:0,tInt:null,sInt:null,selNet:null,openDrId:null
+tStart:0,tInt:null,sInt:null,selNet:null,openDrId:null,
+recStart:0,recInt:null
 };
 var $=function(id){return document.getElementById(id)};
 
@@ -481,17 +488,20 @@ $('ph').classList.add('hide');
 $('hud').classList.add('show');
 $('btnPS').className='cb cb-stop';
 $('icoPS').innerHTML='<path d="M6 6h12v12H6z"/>';
+$('btnRec').style.display='flex';
 G.streaming=true;
 setChip(true,'Live');
 startTimer();
 }
 function stopStream(){
+if(G.recording){stopRecording()}
 var img=$('stream');
 img.src='';img.classList.add('hide');
 $('ph').classList.remove('hide');
 $('hud').classList.remove('show');
 $('btnPS').className='cb cb-play';
 $('icoPS').innerHTML='<path d="M8 5v14l11-7z"/>';
+$('btnRec').style.display='none';
 $('spinner').classList.remove('show');
 G.streaming=false;
 setChip(false,'Idle');
@@ -536,6 +546,62 @@ G.ledOn=!!next;
 $('btnLED').className='cb '+(G.ledOn?'cb-led-on':'cb-def');
 }
 }).catch(function(){nfy('LED failed','er')});
+}
+
+/* ===== Recording ===== */
+function startRecTimer(){G.recStart=Date.now();G.recInt=setInterval(updRecTimer,1000)}
+function stopRecTimer(){clearInterval(G.recInt);$('recTimer').textContent='00:00'}
+function updRecTimer(){
+var e=Math.floor((Date.now()-G.recStart)/1000);
+$('recTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+}
+
+function toggleRecording(){
+if(G.recording)stopRecording();else startRecording();
+}
+
+function startRecording(){
+if(!G.streaming){nfy('Start stream first','wn');return}
+var el=$('btnRec');
+fetch(G.base+'/start-recording')
+.then(function(r){return r.json()})
+.then(function(d){
+if(d.success){
+G.recording=true;
+el.className='cb cb-stop';
+$('icoRec').innerHTML='<path d="M6 6h12v12H6z"/>';
+el.title='Stop Recording';
+$('recBadge').style.display='flex';
+startRecTimer();
+fbtn(el,true);
+nfy('Recording started','ok');
+}else{
+fbtn(el,false);
+nfy(d.error||'Recording failed','er');
+}
+}).catch(function(){fbtn(el,false);nfy('Recording error','er')});
+}
+
+function stopRecording(){
+var el=$('btnRec');
+fetch(G.base+'/stop-recording')
+.then(function(r){return r.json()})
+.then(function(d){
+if(d.success){
+G.recording=false;
+el.className='cb cb-def';
+$('icoRec').innerHTML='<circle cx="12" cy="12" r="8"/>';
+el.title='Start Recording';
+$('recBadge').style.display='none';
+stopRecTimer();
+fbtn(el,true);
+var msg='Saved: '+d.filename+' ('+(d.size/1048576).toFixed(1)+'MB, '+d.frames+' frames, '+d.duration+'s)';
+nfy(msg,'ok');
+}else{
+fbtn(el,false);
+nfy(d.error||'Stop failed','er');
+}
+}).catch(function(){fbtn(el,false);nfy('Stop error','er')});
 }
 
 /* ===== Resolution ===== */
@@ -653,6 +719,19 @@ var hb=$('pHeap');hb.style.width=hp+'%';hb.className='prg-b'+(hp>85?' cr':hp>70?
 var pp=d.psram_usage.toFixed(0);
 $('mPSRAM').textContent=(d.free_psram/1048576).toFixed(1)+'MB free';
 var pb=$('pPSRAM');pb.style.width=pp+'%';pb.className='prg-b'+(pp>85?' cr':pp>70?' wn':'');
+/* SD Card */
+if(d.sd_available){
+var sdp=d.sd_percent.toFixed(0);
+var sdfree=(d.sd_free/1073741824).toFixed(1);
+var sdtotal=(d.sd_total/1073741824).toFixed(1);
+$('mSD').textContent=sdfree+'GB free';
+$('mSDSize').textContent=sdtotal+'GB total';
+var sdb=$('pSD');sdb.style.width=sdp+'%';sdb.className='prg-b'+(sdp>90?' cr':sdp>75?' wn':'');
+}else{
+$('mSD').textContent='Not Available';
+$('mSDSize').textContent='--';
+$('pSD').style.width='0';
+}
 }).catch(function(){});
 }
 
@@ -753,7 +832,7 @@ if(d.wb_mode!==undefined)$('selWB').value=d.wb_mode;
 var tgs=document.querySelectorAll('#drSet .tg input');
 var tk=['awb','agc','aec','hmirror','vflip','bpc','wpc','lenc'];
 for(var i=0;i<tk.length;i++){if(d[tk[i]]!==undefined&&tgs[i])tgs[i].checked=!!d[tk[i]]}
-if(d.sd_card)$('mSD').textContent='Available';else $('mSD').textContent='N/A';
+if(d.sd_card){$('mSD').textContent='Available';$('mSDSize').textContent='Check monitor';}else{$('mSD').textContent='N/A';$('mSDSize').textContent='--';}
 }).catch(function(){setChip(false,'Offline')});
 
 G.sInt=setInterval(function(){if(G.openDrId==='drMon')getStats()},3000);
