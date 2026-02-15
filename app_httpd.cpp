@@ -483,41 +483,51 @@ static esp_err_t list_files_handler(httpd_req_t *req) {
 // ==================================================================
 static esp_err_t download_file_handler(httpd_req_t *req) {
   if (!sdCardAvailable) {
+    log_e("SD card not available");
     httpd_resp_send_404(req);
     return ESP_FAIL;
   }
 
   // Parse query string to get filename
-  char query[128];
+  char query[256] = {0};
   if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK) {
+    log_e("No query string");
     httpd_resp_send_404(req);
     return ESP_FAIL;
   }
 
-  char filename[64] = {0};
+  char filename[128] = {0};
   if (httpd_query_key_value(query, "name", filename, sizeof(filename)) != ESP_OK) {
+    log_e("No name parameter");
     httpd_resp_send_404(req);
     return ESP_FAIL;
   }
 
-  // URL decode filename (handles %20 for spaces, etc.)
-  char decodedFilename[64] = {0};
+  // URL decode filename (handles %20, %2F, etc.)
+  char decodedFilename[128] = {0};
   int j = 0;
-  for (int i = 0; filename[i] && j < 63; i++) {
+  for (int i = 0; filename[i] && j < 126; i++) {
     if (filename[i] == '%' && filename[i+1] && filename[i+2]) {
       char hex[3] = {filename[i+1], filename[i+2], 0};
       decodedFilename[j++] = (char)strtol(hex, NULL, 16);
       i += 2;
+    } else if (filename[i] == '+') {
+      decodedFilename[j++] = ' ';  // Handle + as space
     } else {
       decodedFilename[j++] = filename[i];
     }
   }
+  decodedFilename[j] = '\0';
   
-  // Build filepath - add leading slash if not present
+  log_i("Requesting file: %s (decoded: %s)", filename, decodedFilename);
+  
+  // Build filepath - ensure leading slash
   String filepath = String(decodedFilename);
   if (!filepath.startsWith("/")) {
     filepath = "/" + filepath;
   }
+  
+  log_i("Opening file: %s", filepath.c_str());
   File file = SD_MMC.open(filepath.c_str(), FILE_READ);
   
   if (!file) {
@@ -525,25 +535,36 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
     httpd_resp_send_404(req);
     return ESP_FAIL;
   }
+  
+  size_t fileSize = file.size();
+  log_i("File size: %d bytes", fileSize);
 
   // Set content type based on file extension
-  String fname = String(filename);
-  if (fname.endsWith(".jpg") || fname.endsWith(".JPG")) {
+  if (filepath.endsWith(".jpg") || filepath.endsWith(".JPG") || 
+      filepath.endsWith(".jpeg") || filepath.endsWith(".JPEG")) {
     httpd_resp_set_type(req, "image/jpeg");
-  } else if (fname.endsWith(".mjpeg") || fname.endsWith(".MJPEG")) {
-    httpd_resp_set_type(req, "video/x-motion-jpeg");
+  } else if (filepath.endsWith(".mjpeg") || filepath.endsWith(".MJPEG")) {
+    httpd_resp_set_type(req, "application/octet-stream");  // Force download for mjpeg
   } else {
     httpd_resp_set_type(req, "application/octet-stream");
   }
 
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-  httpd_resp_set_hdr(req, "Content-Disposition", ("inline; filename=" + fname).c_str());
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET");
+  httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store");
+  
+  // Extract display filename (without leading slash)
+  String dispName = filepath;
+  if (dispName.startsWith("/")) dispName = dispName.substring(1);
+  String contentDisp = "inline; filename=\"" + dispName + "\"";
+  httpd_resp_set_hdr(req, "Content-Disposition", contentDisp.c_str());
 
-  // Stream file in chunks
+  // Stream file in chunks using chunked transfer
   const size_t chunkSize = 4096;
   uint8_t *buffer = (uint8_t *)malloc(chunkSize);
   
   if (!buffer) {
+    log_e("Failed to allocate buffer");
     file.close();
     httpd_resp_send_500(req);
     return ESP_FAIL;
@@ -551,15 +572,21 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
 
   esp_err_t res = ESP_OK;
   size_t bytesRead;
+  size_t totalSent = 0;
   
   while ((bytesRead = file.read(buffer, chunkSize)) > 0) {
     if (httpd_resp_send_chunk(req, (const char *)buffer, bytesRead) != ESP_OK) {
+      log_e("Failed to send chunk");
       res = ESP_FAIL;
       break;
     }
+    totalSent += bytesRead;
   }
   
-  httpd_resp_send_chunk(req, NULL, 0); // End chunked response
+  // End chunked response
+  httpd_resp_send_chunk(req, NULL, 0);
+  
+  log_i("Sent %d bytes of %d", totalSent, fileSize);
   
   free(buffer);
   file.close();
