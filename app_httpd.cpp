@@ -31,12 +31,15 @@
 #include "camera_index.h"
 #include "board_config.h"
 
+// WiFi (must come before lwIP socket headers to avoid INADDR_NONE conflict)
+#include <WiFi.h>
+
+// Socket timeout support (after WiFi.h to prevent macro collision)
+#include <sys/socket.h>
+
 // SD card headers
 #include "FS.h"
 #include "SD_MMC.h"
-
-// WiFi for RSSI reading
-#include <WiFi.h>
 
 #if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
@@ -553,6 +556,11 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
   httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET");
   httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store");
   
+  // Set Content-Length so browsers can show download progress
+  static char contentLenBuf[16];
+  snprintf(contentLenBuf, sizeof(contentLenBuf), "%u", fileSize);
+  httpd_resp_set_hdr(req, "Content-Length", contentLenBuf);
+  
   // Check if download mode is requested via ?dl=1
   char dlParam[4] = {0};
   bool forceDownload = false;
@@ -563,16 +571,22 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
   // Extract display filename (without leading slash)
   String dispName = filepath;
   if (dispName.startsWith("/")) dispName = dispName.substring(1);
-  String contentDisp;
+  // Use static buffer so pointer stays valid through response
+  static char contentDispBuf[192];
   if (forceDownload) {
-    contentDisp = "attachment; filename=\"" + dispName + "\"";
+    snprintf(contentDispBuf, sizeof(contentDispBuf), "attachment; filename=\"%s\"", dispName.c_str());
   } else {
-    contentDisp = "inline; filename=\"" + dispName + "\"";
+    snprintf(contentDispBuf, sizeof(contentDispBuf), "inline; filename=\"%s\"", dispName.c_str());
   }
-  httpd_resp_set_hdr(req, "Content-Disposition", contentDisp.c_str());
+  httpd_resp_set_hdr(req, "Content-Disposition", contentDispBuf);
 
-  // Stream file in chunks using chunked transfer
-  const size_t chunkSize = 4096;
+  // Increase socket send timeout for large files (videos)
+  int send_timeout = 30;  // 30 seconds
+  if (fileSize > 100000) send_timeout = 120;  // 2 minutes for >100KB
+  setsockopt(httpd_req_to_sockfd(req), SOL_SOCKET, SO_SNDTIMEO, &send_timeout, sizeof(send_timeout));
+
+  // Stream file in chunks (8KB for faster transfer)
+  const size_t chunkSize = 8192;
   uint8_t *buffer = (uint8_t *)malloc(chunkSize);
   
   if (!buffer) {
@@ -588,11 +602,13 @@ static esp_err_t download_file_handler(httpd_req_t *req) {
   
   while ((bytesRead = file.read(buffer, chunkSize)) > 0) {
     if (httpd_resp_send_chunk(req, (const char *)buffer, bytesRead) != ESP_OK) {
-      log_e("Failed to send chunk");
+      log_e("Failed to send chunk at %u/%u bytes", totalSent, fileSize);
       res = ESP_FAIL;
       break;
     }
     totalSent += bytesRead;
+    // Yield to prevent watchdog timeout on large files
+    vTaskDelay(1);
   }
   
   // End chunked response
