@@ -1,7 +1,7 @@
 /*
  * =============================================================
  *  TRINETRA — ESP32-CAM Surveillance System
- *  Web Interface v3.0 — Immersive Stream-First UI
+ *  Web Interface v3.1 — Immersive Stream-First UI + Recording
  * =============================================================
  *  Hero stream fills viewport, floating control bar,
  *  slide-in drawers, shutter flash, no toasts, all SVG.
@@ -400,9 +400,9 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0">
 <div class="about-icon"><svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></div>
 <div style="font-size:1.1rem;font-weight:700">TRINETRA</div>
-<span style="font-size:.65rem;color:var(--tx3);background:var(--sf2);padding:2px 10px;border-radius:10px">v3.0</span>
+<span style="font-size:.65rem;color:var(--tx3);background:var(--sf2);padding:2px 10px;border-radius:10px">v3.1</span>
 </div>
-<p style="font-size:.76rem;color:var(--tx2);margin:12px 0;line-height:1.6">Professional ESP32-CAM surveillance with real-time MJPEG streaming, web-based WiFi management, and SD card storage. "Trinetra" means three eyes in Sanskrit.</p>
+<p style="font-size:.76rem;color:var(--tx2);margin:12px 0;line-height:1.6">Professional ESP32-CAM surveillance with real-time MJPEG streaming, video recording to SD card, web-based WiFi management, and comprehensive storage monitoring. "Trinetra" means three eyes in Sanskrit.</p>
 <div style="text-align:left">
 <div class="irow"><span class="irow-l">Platform</span><span class="irow-v">ESP32-CAM AI-Thinker</span></div>
 <div class="irow"><span class="irow-l">Camera</span><span class="irow-v">OV2640</span></div>
