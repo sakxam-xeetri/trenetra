@@ -213,7 +213,9 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .gal-item{position:relative;aspect-ratio:1;border-radius:var(--r);overflow:hidden;background:var(--sf2);cursor:pointer;border:2px solid transparent;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .gal-item:hover{border-color:var(--ac);transform:scale(1.02);box-shadow:0 4px 16px rgba(220,38,38,.3)}
 .gal-item:active{transform:scale(.98)}
-.gal-img{width:100%;height:100%;object-fit:cover;display:block;background:var(--sf3)}
+.gal-img{width:100%;height:100%;object-fit:cover;display:block;background:var(--sf3);position:absolute;top:0;left:0}
+.gal-placeholder{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--sf2),var(--sf3))}
+.gal-placeholder svg{width:40px;height:40px;fill:var(--tx2);opacity:.5}
 .gal-vid{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--ac),#b91c1c)}
 .gal-vid svg{width:36px;height:36px;fill:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
 .gal-type{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.75);color:#fff;font-size:.58rem;padding:3px 8px;border-radius:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;backdrop-filter:blur(4px)}
@@ -266,6 +268,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .gal-preview-btns .btn{width:100%}
 .gal-preview-x{top:10px;right:10px;width:38px;height:38px}
 }
+.gal-preview-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;color:var(--tx3);font-size:.76rem;gap:12px}
 
 /* ===== MODAL ===== */
 .mov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px}
@@ -306,11 +309,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 .bar-r .ib.desk{display:none}
 .drawer{top:44px;bottom:56px;width:100%}
 .cb{width:40px;height:40px}.cb svg{width:18px;height:18px}
-.cbar{height:54px;gap:6px;padding:0 12px;bottom:66px;border-radius:27px;max-width:calc(100% - 20px)}
+.cbar{height:52px;gap:6px;padding:0 12px;bottom:16px;border-radius:26px;max-width:calc(100% - 20px)}
 .cb-sel{padding:8px 26px 8px 10px;font-size:.65rem;min-width:70px}
 .cb-sep{height:24px;margin:0 4px}
 .sg{grid-template-columns:1fr 1fr}
-.hero{bottom:calc(var(--mnav) + 62px)}
+.hero{bottom:calc(var(--mnav) + 8px)}
 }
 @media(min-width:641px){.mnav{display:none}}
 </style>
@@ -978,9 +981,11 @@ var sz=(f.size/1024).toFixed(0)+'KB';
 if(f.size>1024*1024)sz=(f.size/(1024*1024)).toFixed(1)+'MB';
 var typeLabel=f.type==='photo'?'JPG':'VIDEO';
 var typeClass=f.type==='video'?' vid':'';
+var imgUrl=G.base+'/download-file?name='+encodeURIComponent(f.name);
 html+='<div class="gal-item" onclick="viewFile(\''+f.name.replace(/'/g,'&#39;')+'\',\''+f.type+'\')">';
 if(f.type==='photo'){
-html+='<img class="gal-img" src="'+G.base+'/download-file?name='+encodeURIComponent(f.name)+'" alt="'+f.name+'" loading="lazy" onerror="this.style.display=\'none\'">';
+html+='<div class="gal-placeholder"><svg viewBox="0 0 24 24"><path d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>';
+html+='<img class="gal-img" src="'+imgUrl+'" alt="'+f.name+'" loading="lazy" onload="this.previousElementSibling.style.display=\'none\'" onerror="this.style.display=\'none\'">';
 }else{
 html+='<div class="gal-vid"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>';
 }
@@ -998,19 +1003,25 @@ area.innerHTML='<div class="gal-empty"><svg viewBox="0 0 24 24"><path d="M12 2a1
 }
 
 function viewFile(name,type){
+var url=G.base+'/download-file?name='+encodeURIComponent(name);
+console.log('Viewing file:',name,'type:',type,'url:',url);
 if(type==='photo'){
 // Show in lightbox modal
 var modal=document.createElement('div');
 modal.className='gal-preview';
-modal.innerHTML='<div class="gal-preview-bg" onclick="this.parentElement.remove()"></div><div class="gal-preview-wrap"><img src="'+G.base+'/download-file?name='+encodeURIComponent(name)+'" alt="'+name+'"><div class="gal-preview-info"><span>'+name+'</span><div class="gal-preview-btns"><a href="'+G.base+'/download-file?name='+encodeURIComponent(name)+'" download="'+name+'" class="btn btn-p"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download</a><button class="btn btn-d" onclick="this.closest(\'.gal-preview\').remove();deleteFile(\''+name.replace(/'/g,'&#39;')+'\')"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button></div></div><button class="gal-preview-x" onclick="this.parentElement.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>';
+modal.innerHTML='<div class="gal-preview-bg" onclick="this.parentElement.remove()"></div><div class="gal-preview-wrap"><div class="gal-preview-loading"><div class="spin-ring"></div></div><img src="'+url+'" alt="'+name+'" onload="this.previousElementSibling.style.display=\'none\'" onerror="this.previousElementSibling.innerHTML=\'Failed to load image\';this.style.display=\'none\'"><div class="gal-preview-info"><span>'+name+'</span><div class="gal-preview-btns"><a href="'+url+'" download="'+name+'" class="btn btn-p" target="_blank"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Download</a><button class="btn btn-s" onclick="window.open(\''+url+'\',\'_blank\')"><svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>Open Tab</button><button class="btn btn-d" onclick="this.closest(\'.gal-preview\').remove();deleteFile(\''+name.replace(/'/g,'&#39;')+'\')"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button></div></div><button class="gal-preview-x" onclick="this.parentElement.parentElement.remove()"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>';
 document.body.appendChild(modal);
 }else{
-// Download video file
+// Download video file directly
+nfy('Downloading '+name+'...','wn');
 var a=document.createElement('a');
-a.href=G.base+'/download-file?name='+encodeURIComponent(name);
+a.href=url;
 a.download=name;
+a.target='_blank';
+document.body.appendChild(a);
 a.click();
-nfy('Downloading '+name,'ok');
+document.body.removeChild(a);
+setTimeout(function(){nfy('Download started','ok')},500);
 }
 }
 
