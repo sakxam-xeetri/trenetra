@@ -410,7 +410,7 @@ void setup() {
 }
 
 // =======================
-// LOOP - Process DNS, OTA, WiFi reconnect
+// LOOP - Process DNS, OTA, WiFi  reconnect
 // =======================
 void loop() {
   dnsServer.processNextRequest();  // Handle DNS for captive portal redirection
