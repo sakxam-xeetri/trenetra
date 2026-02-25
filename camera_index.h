@@ -332,6 +332,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <button class="ib desk" onclick="openDr('drMon')" title="Monitor" aria-label="Monitor" id="ibMon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v11a2 2 0 002 2h3l-1 1v2h10v-2l-1-1h3a2 2 0 002-2V5a2 2 0 00-2-2zm0 13H5V5h14v11z"/></svg></button>
 <button class="ib desk" onclick="openDr('drWifi')" title="WiFi" aria-label="WiFi" id="ibWifi"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></button>
 <button class="ib desk" onclick="openDr('drGal')" title="Gallery" aria-label="Gallery" id="ibGal"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg></button>
+<button class="ib desk" onclick="openDr('drDrone')" title="Drone Mode" aria-label="Drone Mode" id="ibDrone"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0011.5 2 1.5 1.5 0 0010 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></button>
 <button class="ib" onclick="openAbout()" title="About" aria-label="About"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></button>
 </div>
 </header>
@@ -474,6 +475,36 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 </div>
 </div>
 
+<!-- =============== DRONE MODE DRAWER =============== -->
+<div class="drawer" id="drDrone">
+<div class="dh"><h2><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0011.5 2 1.5 1.5 0 0010 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>Drone Mode</h2><button class="ib" onclick="closeDr('drDrone')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+<div class="db">
+<div class="dsec"><svg viewBox="0 0 24 24"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-1.5H19V16h-1.5v-1.5zm0 3H19V19h-1.5v-1.5z"/></svg>QR Landing Scanner</div>
+<p style="font-size:.72rem;color:var(--tx2);margin-bottom:12px;line-height:1.5">Point your camera at a QR code containing <strong style="color:var(--ac)">LANDED_TRIGGER</strong> to confirm drone landing and generate the flight report.</p>
+<!-- QR Scanner Area -->
+<div id="qrScanArea" style="width:100%;aspect-ratio:1;max-height:280px;background:var(--sf2);border-radius:var(--r);overflow:hidden;border:2px dashed var(--bd2);margin-bottom:12px;position:relative">
+<div id="qrPlaceholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:2">
+<svg viewBox="0 0 24 24" style="width:48px;height:48px;fill:var(--tx3);opacity:.5"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5zm-6 8h1.5v1.5H13V13zm1.5 1.5H16V16h-1.5v-1.5zM16 13h1.5v1.5H16V13zm-3 3h1.5v1.5H13V16zm1.5 1.5H16V19h-1.5v-1.5zM16 16h1.5v1.5H16V16zm1.5-1.5H19V16h-1.5v-1.5zm0 3H19V19h-1.5v-1.5z"/></svg>
+<span style="font-size:.72rem;color:var(--tx3)">Scanner not started</span>
+</div>
+<div id="qrReader" style="width:100%;height:100%"></div>
+</div>
+<div class="bg2 c2" style="margin-bottom:12px">
+<button class="btn btn-p" id="btnQrStart" onclick="qrStart()"><svg viewBox="0 0 24 24"><path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5zm-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6zm6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5z"/></svg>Start Scanner</button>
+<button class="btn btn-s" id="btnQrStop" onclick="qrStop()" disabled><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>Stop Scanner</button>
+</div>
+<div id="qrStatus" style="padding:10px;background:var(--sf2);border-radius:var(--rs);font-size:.72rem;color:var(--tx3);text-align:center;border:1px solid var(--bd)">Waiting for scanner...</div>
+<div class="dsep"></div>
+<div class="dsec"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>Instructions</div>
+<div style="font-size:.68rem;color:var(--tx3);line-height:1.6">
+<p style="margin-bottom:6px">1. Click <strong style="color:var(--tx2)">Start Scanner</strong> to activate camera QR reader</p>
+<p style="margin-bottom:6px">2. Show a QR code with value: <strong style="color:var(--ac)">LANDED_TRIGGER</strong></p>
+<p style="margin-bottom:6px">3. System auto-redirects to the flight report page</p>
+<p>4. View flight path on Kathmandu map with telemetry data</p>
+</div>
+</div>
+</div>
+
 <!-- =============== DRAWER BACKDROP =============== -->
 <div class="backdrop" id="bk" onclick="closeAll()"></div>
 
@@ -518,6 +549,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bor
 <button class="mn" onclick="openDr('drMon')" id="mn2"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v11a2 2 0 002 2h3l-1 1v2h10v-2l-1-1h3a2 2 0 002-2V5a2 2 0 00-2-2zm0 13H5V5h14v11z"/></svg>Monitor</button>
 <button class="mn" onclick="openDr('drWifi')" id="mn3"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>WiFi</button>
 <button class="mn" onclick="openDr('drGal')" id="mn4"><svg viewBox="0 0 24 24"><path d="M22 16V4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14a2 2 0 002 2h14v-2H4V6H2z"/></svg>Gallery</button>
+<button class="mn" onclick="openDr('drDrone')" id="mn5"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0011.5 2 1.5 1.5 0 0010 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>Drone</button>
 </div>
 </nav>
 
@@ -771,10 +803,10 @@ $(id).classList.add('open');
 $('bk').classList.add('show');
 G.openDrId=id;
 /* highlight appbar icons */
-var map={drSet:'ibSet',drMon:'ibMon',drWifi:'ibWifi',drGal:'ibGal'};
+var map={drSet:'ibSet',drMon:'ibMon',drWifi:'ibWifi',drGal:'ibGal',drDrone:'ibDrone'};
 if(map[id]&&$(map[id]))$(map[id]).classList.add('active');
 /* mobile nav highlight */
-var mi={drSet:1,drMon:2,drWifi:3,drGal:4};
+var mi={drSet:1,drMon:2,drWifi:3,drGal:4,drDrone:5};
 document.querySelectorAll('.mn').forEach(function(b,i){b.classList.toggle('active',i===(mi[id]||0))});
 if(id==='drMon')getStats();
 if(id==='drWifi')getWifiSt();
@@ -1079,6 +1111,120 @@ loadGallery();
 });
 }).catch(function(){nfy('Failed to delete files','er')});
 }
+
+/* =============================================================
+ *  qr_mode.js — QR Scanner Module (Drone Mode)
+ *  Uses html5-qrcode library for browser-based QR scanning
+ *  Triggers landing event on LANDED_TRIGGER code
+ * ============================================================= */
+var QR = {
+  scanner: null,
+  active: false,
+  triggered: false,
+  libLoaded: false
+};
+
+/* Load html5-qrcode library dynamically (only when needed) */
+function qrLoadLib(cb) {
+  if (QR.libLoaded) { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+  s.onload = function() { QR.libLoaded = true; cb(); };
+  s.onerror = function() { nfy('Failed to load QR library', 'er'); };
+  document.head.appendChild(s);
+}
+
+/* Start QR scanner */
+function qrStart() {
+  if (QR.active) return;
+  QR.triggered = false;
+  $('qrStatus').textContent = 'Loading scanner...';
+  $('qrStatus').style.color = 'var(--tx2)';
+  $('btnQrStart').disabled = true;
+
+  qrLoadLib(function() {
+    try {
+      $('qrPlaceholder').style.display = 'none';
+      QR.scanner = new Html5Qrcode('qrReader');
+      QR.scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 200, height: 200 }, aspectRatio: 1.0 },
+        function onSuccess(decodedText) {
+          qrOnDecode(decodedText);
+        },
+        function onError() { /* ignore scan misses */ }
+      ).then(function() {
+        QR.active = true;
+        $('btnQrStart').disabled = true;
+        $('btnQrStop').disabled = false;
+        $('qrStatus').innerHTML = '<span style="color:var(--ok)">&#9679;</span> Scanner active — show QR code';
+      }).catch(function(err) {
+        console.error('QR start error:', err);
+        $('qrStatus').textContent = 'Camera access denied or unavailable';
+        $('qrStatus').style.color = 'var(--er)';
+        $('btnQrStart').disabled = false;
+        $('qrPlaceholder').style.display = 'flex';
+      });
+    } catch(e) {
+      console.error('QR init error:', e);
+      $('qrStatus').textContent = 'Scanner initialization failed';
+      $('qrStatus').style.color = 'var(--er)';
+      $('btnQrStart').disabled = false;
+      $('qrPlaceholder').style.display = 'flex';
+    }
+  });
+}
+
+/* Stop QR scanner */
+function qrStop() {
+  if (!QR.active || !QR.scanner) return;
+  QR.scanner.stop().then(function() {
+    QR.scanner.clear();
+    QR.active = false;
+    $('btnQrStart').disabled = false;
+    $('btnQrStop').disabled = true;
+    $('qrPlaceholder').style.display = 'flex';
+    $('qrStatus').textContent = 'Scanner stopped';
+    $('qrStatus').style.color = 'var(--tx3)';
+  }).catch(function(err) {
+    console.error('QR stop error:', err);
+  });
+}
+
+/* Handle decoded QR value */
+function qrOnDecode(decodedText) {
+  /* Prevent duplicate triggers */
+  if (QR.triggered) return;
+
+  if (decodedText === 'LANDED_TRIGGER') {
+    QR.triggered = true;
+    $('qrStatus').innerHTML = '<span style="color:var(--ok)">&#10003;</span> <strong>LANDED_TRIGGER</strong> detected! Redirecting...';
+    $('qrStatus').style.color = 'var(--ok)';
+    nfy('Landing confirmed! Loading report...', 'ok');
+
+    /* Stop scanner first, then redirect */
+    if (QR.scanner && QR.active) {
+      QR.scanner.stop().then(function() {
+        QR.active = false;
+        setTimeout(function() { window.location.href = '/flight-report'; }, 800);
+      }).catch(function() {
+        setTimeout(function() { window.location.href = '/flight-report'; }, 800);
+      });
+    } else {
+      setTimeout(function() { window.location.href = '/flight-report'; }, 800);
+    }
+  } else {
+    /* Show scanned value but don't trigger */
+    $('qrStatus').innerHTML = 'Scanned: <strong>' + decodedText.substring(0, 40) + '</strong> <span style="color:var(--wn)">(not a landing code)</span>';
+  }
+}
+
+/* Clean up scanner when drawer closes */
+var _origCloseDr = closeDr;
+closeDr = function(id) {
+  if (id === 'drDrone' && QR.active) { qrStop(); }
+  _origCloseDr(id);
+};
 
 </script>
 </body>

@@ -18,6 +18,7 @@
  *    /wifi-connect -> Connect to selected network
  *    /wifi-status  -> Get WiFi connection status
  *    /wifi-reset   -> Clear saved WiFi credentials
+ *    /flight-report -> Drone flight report page (Drone Mode)
  * =============================================================
  */
 
@@ -29,6 +30,7 @@
 #include "esp32-hal-ledc.h"
 #include "sdkconfig.h"
 #include "camera_index.h"
+#include "flight_report.h"
 #include "board_config.h"
 
 // WiFi (must come before lwIP socket headers to avoid INADDR_NONE conflict)
@@ -159,6 +161,15 @@ static esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
   return httpd_resp_send(req, index_html, strlen(index_html));
+}
+
+// ==================================================================
+//  HANDLER: Serve the Flight Report page
+// ==================================================================
+static esp_err_t flight_report_handler(httpd_req_t *req) {
+  httpd_resp_set_type(req, "text/html");
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, flight_report_html, strlen(flight_report_html));
 }
 
 // ==================================================================
@@ -1186,7 +1197,7 @@ static esp_err_t wifi_reset_handler(httpd_req_t *req) {
 // ==================================================================
 void startCameraServer() {
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-  config.max_uri_handlers = 20;
+  config.max_uri_handlers = 24;
 
   // ---- URI definitions for the main HTTP server (port 80) ----
   httpd_uri_t index_uri = {
@@ -1371,6 +1382,17 @@ void startCameraServer() {
 #endif
   };
 
+  // ---- Drone Mode: Flight Report URI ----
+  httpd_uri_t flight_report_uri = {
+    .uri = "/flight-report",
+    .method = HTTP_GET,
+    .handler = flight_report_handler,
+    .user_ctx = NULL
+#ifdef CONFIG_HTTPD_WS_SUPPORT
+    , .is_websocket = true, .handle_ws_control_frames = false, .supported_subprotocol = NULL
+#endif
+  };
+
   // ---- URI for the stream server (port 81) ----
   httpd_uri_t stream_uri = {
     .uri = "/stream",
@@ -1409,6 +1431,8 @@ void startCameraServer() {
     httpd_register_uri_handler(camera_httpd, &list_files_uri);
     httpd_register_uri_handler(camera_httpd, &download_file_uri);
     httpd_register_uri_handler(camera_httpd, &delete_file_uri);
+    // Drone Mode
+    httpd_register_uri_handler(camera_httpd, &flight_report_uri);
   }
 
   // Start stream HTTP server on port 81
