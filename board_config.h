@@ -29,6 +29,11 @@
 //#define CAMERA_MODEL_ESP32S3_CAM_LCD
 //#define CAMERA_MODEL_DFRobot_FireBeetle2_ESP32S3 // Has PSRAM
 //#define CAMERA_MODEL_DFRobot_Romeo_ESP32S3 // Has PSRAM
+// ===================
+// Physical shutter button (GPIO 13 is free in 1-bit SD mode)
+// ===================
+#define BUTTON_GPIO_NUM 13
+
 #include "camera_pins.h"
 
 #endif  // BOARD_CONFIG_H
