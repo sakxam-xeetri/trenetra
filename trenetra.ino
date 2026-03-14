@@ -81,6 +81,14 @@ bool sdCardAvailable = false;
 // =======================
 void startCameraServer();
 void setupLedFlash();
+extern uint32_t photoCounter;  // Shared with app_httpd.cpp for unique filenames
+
+// =======================
+// Physical Button Configuration
+// =======================
+#define BUTTON_DEBOUNCE_MS 300
+volatile bool buttonPressed = false;
+unsigned long lastButtonPress = 0;
 
 // =======================
 // WiFi Manager Functions
@@ -222,6 +230,91 @@ void initSDCard() {
 }
 
 // =======================
+// Physical Button: Capture photo to SD with flash blink
+// =======================
+void IRAM_ATTR buttonISR() {
+  buttonPressed = true;
+}
+
+void buttonCapturePhoto() {
+  Serial.println("[BTN] Button pressed - capturing photo...");
+
+  if (!sdCardAvailable) {
+    Serial.println("[BTN] SD card not available, skipping save");
+    // Rapid triple-blink to indicate error
+#if defined(LED_GPIO_NUM)
+    for (int i = 0; i < 3; i++) {
+      ledcWrite(LED_GPIO_NUM, 255);
+      delay(80);
+      ledcWrite(LED_GPIO_NUM, 0);
+      delay(80);
+    }
+#endif
+    return;
+  }
+
+  // Flash ON as capture indication
+#if defined(LED_GPIO_NUM)
+  ledcWrite(LED_GPIO_NUM, 255);
+  delay(150);
+#endif
+
+  camera_fb_t *fb = esp_camera_fb_get();
+
+#if defined(LED_GPIO_NUM)
+  ledcWrite(LED_GPIO_NUM, 0);
+#endif
+
+  if (!fb) {
+    Serial.println("[BTN] Camera capture failed");
+    return;
+  }
+
+  // Build filename and save
+  char filename[64];
+  photoCounter++;
+  snprintf(filename, sizeof(filename), "/trinetra_%05lu.jpg", (unsigned long)photoCounter);
+
+  File file = SD_MMC.open(filename, FILE_WRITE);
+  if (!file) {
+    Serial.println("[BTN] Failed to open file on SD");
+    esp_camera_fb_return(fb);
+    return;
+  }
+
+  size_t written = 0;
+  if (fb->format == PIXFORMAT_JPEG) {
+    written = file.write(fb->buf, fb->len);
+  } else {
+    uint8_t *jpg_buf = NULL;
+    size_t jpg_len = 0;
+    if (frame2jpg(fb, 80, &jpg_buf, &jpg_len)) {
+      written = file.write(jpg_buf, jpg_len);
+      free(jpg_buf);
+    }
+  }
+  file.close();
+  esp_camera_fb_return(fb);
+
+  if (written > 0) {
+    Serial.printf("[BTN] Photo saved: %s (%u bytes)\n", filename, (unsigned)written);
+    // Success: double-blink confirmation
+#if defined(LED_GPIO_NUM)
+    delay(100);
+    ledcWrite(LED_GPIO_NUM, 255);
+    delay(100);
+    ledcWrite(LED_GPIO_NUM, 0);
+    delay(100);
+    ledcWrite(LED_GPIO_NUM, 255);
+    delay(100);
+    ledcWrite(LED_GPIO_NUM, 0);
+#endif
+  } else {
+    Serial.println("[BTN] Write to SD failed");
+  }
+}
+
+// =======================
 // SETUP
 // =======================
 void setup() {
@@ -300,6 +393,13 @@ void setup() {
 #if defined(LED_GPIO_NUM)
   setupLedFlash();
   Serial.println("[LED] Flash LED initialized");
+#endif
+
+  // ----- Setup Physical Shutter Button -----
+#if defined(BUTTON_GPIO_NUM)
+  pinMode(BUTTON_GPIO_NUM, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_GPIO_NUM), buttonISR, FALLING);
+  Serial.println("[BTN] Shutter button ready on GPIO " + String(BUTTON_GPIO_NUM));
 #endif
 
   // ----- Initialize SD Card -----
@@ -431,5 +531,17 @@ void loop() {
     Serial.printf("[WiFi] Reconnected! IP: %s\n", WiFi.localIP().toString().c_str());
   }
   
+  // Handle physical shutter button press (debounced)
+#if defined(BUTTON_GPIO_NUM)
+  if (buttonPressed) {
+    unsigned long now = millis();
+    if (now - lastButtonPress > BUTTON_DEBOUNCE_MS) {
+      lastButtonPress = now;
+      buttonCapturePhoto();
+    }
+    buttonPressed = false;
+  }
+#endif
+
   delay(10);
 }
